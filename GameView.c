@@ -19,11 +19,25 @@
 #include "Map.h"
 #include "Places.h"
 // add your own #includes here
+#define MAX_PREV_MOVES 6
 
 // TODO: ADD YOUR OWN STRUCTS HERE
+Typedef struct playerInfo {
+	Player name;
+	int health;
+	int score;
+	char currLocation;
+
+} PlayerInfo;
 
 struct gameView {
 	// TODO: ADD FIELDS HERE
+	Round roundNum;
+	int gameScore;
+	char prevMoves[MAX_PREV_MOVES];
+	Map m;
+	PlayerInfo player[NUM_PLAYERS];
+
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -53,30 +67,35 @@ void GvFree(GameView gv)
 Round GvGetRound(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gameView->roundNum;
 }
 
 Player GvGetPlayer(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return PLAYER_LORD_GODALMING;
+	return //GameView->currPlayer->name;
 }
 
 int GvGetScore(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return gameView->gameScore;
 }
 
 int GvGetHealth(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return ;
 }
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+		if (GameView->player[i] = player) {
+			return GameView->player[i]->location;
+		}
+	}
 	return NOWHERE;
 }
 
