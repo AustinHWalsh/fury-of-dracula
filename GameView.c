@@ -25,14 +25,14 @@ typedef struct playerInfo {
 	Player name;			// player's name
 	int health;				// health of the player
 	int score;				// player's individual score
-	char currLocation;		// the player's location
+	Place currLocation;	// the player's location
 } PlayerInfo;
 
 struct gameView {
 	// TODO: ADD FIELDS HERE
 	Round roundNum;
 	int gameScore;
-	char prevMoves[TRAIL_SIZE];
+	Place prevMoves[TRAIL_SIZE];
 	Player currPlayer;
 	Map m;
 	PlayerInfo allPlayers[NUM_PLAYERS];
@@ -90,8 +90,30 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	for (int i = 0; i < NUM_PLAYERS; i++) {
-		if (gv->allPlayers[i].name == player)
-			return gv->allPlayers[i].currLocation;
+		if (gv->allPlayers[i].name == player) {
+			//player is a hunter
+			if (gv->allPlayers[i].name != PLAYER_DRACULA) {
+				//hunter is in hospital if zero health
+				if (gv->allPlayers[i].health == 0) return ST_JOSEPH_AND_ST_MARY;
+				else return gv->allPlayers[i].currLocation.id;
+			//player is Dracula
+			} else {
+				//Dracula's location is revealed
+				if (/*location is in pastPlays*/) {
+					return gv->allPlayers[PLAYER_DRACULA].currLocation.id;
+				//Dracula's location unknown
+				} else {
+					//in the sea
+					if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == SEA) {
+						return SEA_UNKNOWN;
+					}
+					//on land (in city)
+					else if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == LAND) {
+						return CITY_UNKNOWN;
+					}
+				}
+			}
+		}
 	}
 	return NOWHERE;
 }
@@ -99,6 +121,9 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	// return NOWHERE if vampire not spawned, already matured or vanquished
+	// if immature vamp location is revealed in pastPlays, return it
+	// else return CITY_UNKNOWN
 	return NOWHERE;
 }
 
