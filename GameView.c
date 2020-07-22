@@ -73,7 +73,7 @@ Round GvGetRound(GameView gv)
 Player GvGetPlayer(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return //GameView->currPlayer->name;
+	return //use pastplays;
 }
 
 int GvGetScore(GameView gv)
@@ -85,6 +85,11 @@ int GvGetScore(GameView gv)
 int GvGetHealth(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	for (int i = 0; i < NUM_PLAYERS; i++) {
+		if (GameView->player[i] = player) {
+			return GameView->player[i]->health;
+		}
+	}
 	return ;
 }
 
@@ -102,7 +107,7 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return GameView->player[PLAYER_DRACULA]->location;
 }
 
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
