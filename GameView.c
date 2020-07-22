@@ -19,25 +19,23 @@
 #include "Map.h"
 #include "Places.h"
 // add your own #includes here
-#define MAX_PREV_MOVES 6
 
 // TODO: ADD YOUR OWN STRUCTS HERE
-Typedef struct playerInfo {
-	Player name;
-	int health;
-	int score;
-	char currLocation;
-
+typedef struct playerInfo {
+	Player name;			// player's name
+	int health;				// health of the player
+	int score;				// player's individual score
+	char currLocation;		// the player's location
 } PlayerInfo;
 
 struct gameView {
 	// TODO: ADD FIELDS HERE
 	Round roundNum;
 	int gameScore;
-	char prevMoves[MAX_PREV_MOVES];
+	char prevMoves[TRAIL_SIZE];
+	Player currPlayer;
 	Map m;
-	PlayerInfo player[NUM_PLAYERS];
-
+	PlayerInfo allPlayers[NUM_PLAYERS];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -67,19 +65,19 @@ void GvFree(GameView gv)
 Round GvGetRound(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return gameView->roundNum;
+	return gv->roundNum;
 }
 
 Player GvGetPlayer(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return //GameView->currPlayer->name;
+	return gv->currPlayer;
 }
 
 int GvGetScore(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return gameView->gameScore;
+	return gv->gameScore;
 }
 
 int GvGetHealth(GameView gv, Player player)
@@ -92,9 +90,8 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	for (int i = 0; i < NUM_PLAYERS; i++) {
-		if (GameView->player[i] = player) {
-			return GameView->player[i]->location;
-		}
+		if (gv->allPlayers[i].name == player)
+			return gv->allPlayers[i].currLocation;
 	}
 	return NOWHERE;
 }
