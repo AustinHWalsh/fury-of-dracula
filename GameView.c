@@ -215,15 +215,15 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
     
-    int n = roundNum - TRAIL_SIZE;
+    int n = gameView.roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
 
-    for (int i = n; i < roundNum; i++) {
+    for (int i = n; i < gameView.roundNum; i++) {
         if (playerInfo[PLAYER_DRACULA].prevMoves[i] != NULL && playerInfo[PLAYER_DRACULA].prevMoves[i]->type == LAND) {
             trapLocations[*numTraps] = playerInfo[PLAYER_DRACULA].prevMoves[i]->id;
             (*numTraps)++;
         } 
-        
+		
     } 
     
     //*numTraps = 0;
