@@ -115,6 +115,10 @@ void GvFree(GameView gv)
 		free(gv->allplayers[i]->prevMoves);
 	}
 	
+	for(int k = 0; k <= NUM_PLAYERS; k++){
+		free(gv->pastPlays[k])
+	}
+	
 	for(int j = 0; j <= NUM_PLAYERS; j++) {
 		free(gv->allplayers[j]);
 	}
@@ -223,15 +227,15 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
     
-    int n = gameView.roundNum - TRAIL_SIZE;
+    int n = roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
 
-    for (int i = n; i < gameView.roundNum; i++) {
+    for (int i = n; i < roundNum; i++) {
         if (playerInfo[PLAYER_DRACULA].prevMoves[i] != NULL && playerInfo[PLAYER_DRACULA].prevMoves[i]->type == LAND) {
             trapLocations[*numTraps] = playerInfo[PLAYER_DRACULA].prevMoves[i]->id;
             (*numTraps)++;
         } 
-		
+        
     } 
     
     //*numTraps = 0;
