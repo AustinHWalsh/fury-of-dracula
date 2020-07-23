@@ -111,15 +111,15 @@ GameView GvNew(char *pastPlays, Message messages[])
 void GvFree(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	for(int i = 0; i <= NUM_PLAYERS; i++) {
+	for (int i = 0; i <= NUM_PLAYERS; i++) {
 		free(gv->allPlayers[i]->prevMoves);
 	}
 	
-	for(int k = 0; k <= NUM_PLAYERS; k++){
+	for (int k = 0; k <= NUM_PLAYERS; k++){
 		free(gv->pastPlays[k])
 	}
 	
-	for(int j = 0; j <= NUM_PLAYERS; j++) {
+	for (int j = 0; j <= NUM_PLAYERS; j++) {
 		free(gv->allPlayers[j]);
 	}
 	
