@@ -112,7 +112,7 @@ void GvFree(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	for(int i = 0; i <= NUM_PLAYERS; i++) {
-		free(gv->allplayers[i].prevMoves);
+		free(gv->allplayers[i]->prevMoves);
 	}
 	
 	for(int j = 0; j <= NUM_PLAYERS; j++) {
