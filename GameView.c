@@ -251,10 +251,18 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
                         int *numReturnedMoves, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	PlaceId *lastNMoves = malloc(numMoves * sizeof(PlaceId));
 	*numReturnedMoves = 0;
-	*canFree = false;
-	return NULL;
+	// for each round in the string
+	for (int i = 0; i < gv->roundNum; i++) {
+		if (gv->pastPlays[i * ROUND_DIFF] == player) {
+			char abbrev[3] = {gv->pastPlays[i * ROUND_DIFF+1], gv->pastPlays[i * ROUND_DIFF+2], '\0'};
+			lastNMoves[*numReturnedMoves] = placeAbbrevToId(abbrev);
+			*numReturnedMoves++;
+		}
+	}
+	*canFree = true;
+	return lastNMoves;
 }
 
 PlaceId *GvGetLocationHistory(GameView gv, Player player,
