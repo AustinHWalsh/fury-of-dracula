@@ -111,18 +111,12 @@ GameView GvNew(char *pastPlays, Message messages[])
 void GvFree(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	for (int i = 0; i <= NUM_PLAYERS; i++) {
-		free(gv->allPlayers[i]->prevMoves);
+	for(int i = 0; i <= NUM_PLAYERS; i++) {
+		free(gv->allPlayers[i].prevMoves);
 	}
 	
-	for (int k = 0; k <= NUM_PLAYERS; k++){
-		free(gv->pastPlays[k])
-	}
-	
-	for (int j = 0; j <= NUM_PLAYERS; j++) {
-		free(gv->allPlayers[j]);
-	}
-	
+	free(gv->allPlayers);
+		
 	free(gv);
 }
 
@@ -227,20 +221,20 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
     
-    int n = roundNum - TRAIL_SIZE;
+    int n = gv->roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
 
-    for (int i = n; i < roundNum; i++) {
-        if (playerInfo[PLAYER_DRACULA].prevMoves[i] != NULL && playerInfo[PLAYER_DRACULA].prevMoves[i]->type == LAND) {
-            trapLocations[*numTraps] = playerInfo[PLAYER_DRACULA].prevMoves[i]->id;
+    for (int i = n; i < gv->roundNum; i++) {
+        if (gv->allPlayers[PLAYER_DRACULA].prevMoves[i].name != NULL && gv->allPlayers[PLAYER_DRACULA].prevMoves[i].type == LAND) {
+            trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i].id;
             (*numTraps)++;
         } 
-        
+		
     } 
     
     //*numTraps = 0;
     return NULL;
-
+}
 ////////////////////////////////////////////////////////////////////////
 // Game History
 
