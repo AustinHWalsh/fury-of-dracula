@@ -67,10 +67,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 		exit(EXIT_FAILURE);
 	}
 
-	///////////////////////////////////////////
-	//				NOT SURE				 //
-	//				ABOUT THIS				 //
-	///////////////////////////////////////////
+	// copy the pastplays string
+	new->pastPlays = malloc(strlen(pastPlays) * sizeof(char));
 	memcpy(new->pastPlays, pastPlays, strlen(pastPlays));
 		
 	new->m = MapNew();
@@ -97,8 +95,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 		
 		// set current location of player
 		new->allPlayers[i].currLocation.id = GvGetPlayerLocation(new, new->allPlayers[i].name);
-		new->allPlayers[i].currLocation.name = placeIdToName(new->allPlayers[i].currLocation.id);
-		new->allPlayers[i].currLocation.abbrev = placeIdToAbbrev(new->allPlayers[i].currLocation.id);
+		strcpy(new->allPlayers[i].currLocation.name, placeIdToName(new->allPlayers[i].currLocation.id));
+		strcpy(new->allPlayers[i].currLocation.abbrev, placeIdToAbbrev(new->allPlayers[i].currLocation.id));
 		new->allPlayers[i].currLocation.type = placeIdToType(new->allPlayers[i].currLocation.id);
 	}
 	
@@ -258,7 +256,7 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 		if (gv->pastPlays[i * ROUND_DIFF] == player) {
 			char abbrev[3] = {gv->pastPlays[i * ROUND_DIFF+1], gv->pastPlays[i * ROUND_DIFF+2], '\0'};
 			lastNMoves[*numReturnedMoves] = placeAbbrevToId(abbrev);
-			*numReturnedMoves++;
+			(*numReturnedMoves)++;
 		}
 	}
 	*canFree = true;
@@ -318,9 +316,9 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 		// first empty stop in trail
 		if (gv->allPlayers[player].prevMoves[i].name == NULL) {
 			gv->allPlayers[player].prevMoves[i].id = cityId;
-			gv->allPlayers[player].prevMoves[i].name = placeIdToName(cityId);
 			gv->allPlayers[player].prevMoves[i].type = placeIdToType(cityId);
-			gv->allPlayers[player].prevMoves[i].abbrev = placeIdToAbbrev(cityId);
+			strcpy(gv->allPlayers[player].prevMoves[i].name, placeIdToName(cityId));
+			strcpy(gv->allPlayers[player].prevMoves[i].abbrev, placeIdToAbbrev(cityId));
 			return;
 		}
 	}
@@ -331,16 +329,16 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 	PlaceId cityIdTemp2 = gv->allPlayers[player].prevMoves[1].id;
 	// set the first place in the array
 	gv->allPlayers[player].prevMoves[0].id = cityId;
-	gv->allPlayers[player].prevMoves[0].name = placeIdToName(cityId);
+	strcpy(gv->allPlayers[player].prevMoves[0].name, placeIdToName(cityId));
+	strcpy(gv->allPlayers[player].prevMoves[0].abbrev, placeIdToAbbrev(cityId));
 	gv->allPlayers[player].prevMoves[0].type = placeIdToType(cityId);
-	gv->allPlayers[player].prevMoves[0].abbrev = placeIdToAbbrev(cityId);
 	// set the remaining in the trail
 	for (int i = 1; i < TRAIL_SIZE; i++) {
 		cityIdTemp2 = gv->allPlayers[player].prevMoves[i].id;
 		gv->allPlayers[player].prevMoves[i].id = cityIdTemp;
-		gv->allPlayers[player].prevMoves[i].name = placeIdToName(cityIdTemp);
+		strcpy(gv->allPlayers[player].prevMoves[i].name, placeIdToName(cityId));
+		strcpy(gv->allPlayers[player].prevMoves[i].abbrev, placeIdToAbbrev(cityId));
 		gv->allPlayers[player].prevMoves[i].type = placeIdToType(cityIdTemp);
-		gv->allPlayers[player].prevMoves[i].abbrev = placeIdToAbbrev(cityIdTemp);
 		cityIdTemp = cityIdTemp2;
 	}
 } 
