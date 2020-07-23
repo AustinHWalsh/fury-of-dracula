@@ -19,10 +19,12 @@
 #include "GameView.h"
 #include "Map.h"
 #include "Places.h"
+
 // add your own #includes here
 #define PLACE_POS 6
 #define PLAYER_POS 7
 #define ROUND_DIFF 8
+
 // TODO: ADD YOUR OWN STRUCTS HERE
 typedef struct playerInfo {
 	Player name;				 // player's name
@@ -39,6 +41,10 @@ struct gameView {
 	Map m;									// graph of the locations
 	PlayerInfo allPlayers[NUM_PLAYERS];		// array of player informations
 };
+
+// declare your own functions here
+void completePastPlays(GameView gv, char *pastPlays);
+
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -116,7 +122,7 @@ int GvGetScore(GameView gv)
 int GvGetHealth(GameView gv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return ;
+	return gv->allPlayers[player].health;
 }
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
@@ -127,12 +133,14 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 			//player is a hunter
 			if (gv->allPlayers[i].name != PLAYER_DRACULA) {
 				//hunter is in hospital if zero health
-				if (gv->allPlayers[i].health == 0) return ST_JOSEPH_AND_ST_MARY;
-				else return gv->allPlayers[i].currLocation.id;
+				if (gv->allPlayers[i].health == 0) 
+					return ST_JOSEPH_AND_ST_MARY;
+				else 
+					return gv->allPlayers[i].currLocation.id;
 			//player is Dracula
 			} else {
 				//Dracula's location is revealed
-				if (/*location is in pastPlays*/) {
+				if (/*location is in pastPlays*/ gv) {
 					return gv->allPlayers[PLAYER_DRACULA].currLocation.id;
 				//Dracula's location unknown
 				} else {
@@ -154,9 +162,17 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	// return NOWHERE if vampire not spawned, already matured or vanquished
-	// if immature vamp location is revealed in pastPlays, return it
-	// else return CITY_UNKNOWN
+
+	//there is an immature vampire
+	if (0 <= (gv->roundNum - 1 % 13) && (gv->roundNum - 1 % 13) < 6) {
+		//find location of vamp in pastPlay or Dracula's prevMoves
+		//if hunters have not visited the city vamp is spawned in,
+			if (/*Drac's CITY is revealed in pastPlay when V is spawned*/gv) 
+				return /*Drac's CITY when V is spawned*/CITY_UNKNOWN;
+			else
+				return CITY_UNKNOWN;
+	}
+	//vampire not immature, not spawned or vanquished
 	return NOWHERE;
 }
 
