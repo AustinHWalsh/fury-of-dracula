@@ -185,13 +185,18 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	int r = (gv->roundNum - 1) % 13
+	int r = (gv->roundNum - 1) % 13;
 	//there is an immature vampire
 	if (0 <= r && r < 6) {
-		//find location of vamp in pastPlay or Dracula's prevMoves
-		for (int i = 0; i < roundNum - r; i++) { // go to correct roundNum line to search for V
-			char* currStr = strtok(gv->pastPlay, "/n");
+		//find location of vamp in pastPlay
+		char* currStr = strtok(gv->pastPlays, "/n");
+		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
+			currStr = strtok(gv->pastPlays, "/n");
 		}
+		while (currStr != NULL) 
+			currStr = strtok(NULL, ".... ");
+		//read drac loc, assign to location of vampire
+		
 		//if hunters have not visited the city vamp is spawned in,
 			if (/*Drac's CITY is revealed in pastPlay when V is spawned*/gv)
 				return /*Drac's CITY when V is spawned*/CITY_UNKNOWN;
