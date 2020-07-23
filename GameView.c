@@ -194,10 +194,40 @@ PlaceId GvGetVampireLocation(GameView gv)
 
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numTraps = 0;
-	return NULL;
-}
+
+ ///////////////////// PSEUDO CODE /////////////////////////
+ /*
+ 
+ initialise array for trap locations 
+ go through all locations of the map and check if they are land
+ compare these with locations in dracula's trail 
+ if they match, then add location to traplocations array and increment numTraps
+ else continue 
+ also, need to check after every dracula move to remove traps once the location is no longer in the trail
+
+ loop through player moves for current round + 1 ()
+ check if theyve set off a trap, if yes remove from list 
+ if multiple traps, check player health to check if all traps are destoryed or not 
+
+ */
+ ///////////////////////////////////////////////////////////
+    // TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
+    *numTraps = 0;
+    
+    int n = roundNum - TRAIL_SIZE;
+    if (n < 0) n = 0;
+
+    for (int i = n; i < roundNum; i++) {
+        if (playerInfo[PLAYER_DRACULA].prevMoves[i] != NULL && playerInfo[PLAYER_DRACULA].prevMoves[i]->type == LAND) {
+            trapLocations[*numTraps] = playerInfo[PLAYER_DRACULA].prevMoves[i]->id;
+            (*numTraps)++;
+        } 
+        
+    } 
+    
+    //*numTraps = 0;
+    return NULL;
 
 ////////////////////////////////////////////////////////////////////////
 // Game History
