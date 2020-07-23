@@ -167,8 +167,9 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 					return gv->allPlayers[i].currLocation.id;
 			//player is Dracula
 			} else {
-				//Dracula's location is revealed
-				if (/*location is in pastPlays*/ gv) {
+				//Dracula's location is revealed (not unknown)
+				if (gv->allPlayers[PLAYER_DRACULA].currLocation.id != CITY_UNKNOWN
+					&& gv->allPlayers[PLAYER_DRACULA].currLocation.id != SEA_UNKNOWN) {
 					return gv->allPlayers[PLAYER_DRACULA].currLocation.id;
 				//Dracula's location unknown
 				} else {
