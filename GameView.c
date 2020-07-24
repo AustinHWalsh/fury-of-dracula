@@ -185,24 +185,19 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 
 PlaceId GvGetVampireLocation(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	// Gets the location of the sleeping immature vampire.
+	
 	int r = (gv->roundNum - 1) % 13;
 	//an immature vampire exists
 	if (0 <= r && r < 6) {
-		
-
-		//////////////////////////////////////
-		//		NOT SURE IF THIS WORKS		//
-		//////////////////////////////////////
-
+		//temp copy of pastPlays for strtok
+		char pastPlayCpy[strlen(pastPlays)];
+		strcpy(pastPlayCpy, gv->pastPlays);
 		//find location of vamp in pastPlay
-		char *currStr = strtok(gv->pastPlays, "\n");
+		char *currStr = strtok(pastPlayCpy, "\n");
 		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
-			currStr = strtok(gv->pastPlays, "\n");
+			currStr = strtok(pastPlayCpy, "\n");
 		}
-
-		// the rest should work
-
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
 		//read Dracula location when V was spawned and assign it as vampire's location
