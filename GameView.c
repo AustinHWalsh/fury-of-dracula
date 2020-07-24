@@ -21,6 +21,7 @@
 #include "Places.h"
 
 // add your own #includes here
+#define LOCATION_ABBREVIATION_MAX 3
 #define PLACE_POS 6
 #define PLAYER_POS 7
 #define ROUND_DIFF 8
@@ -186,24 +187,53 @@ PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	int r = (gv->roundNum - 1) % 13;
-	//there is an immature vampire
+	//an immature vampire exists
 	if (0 <= r && r < 6) {
-		//find location of vamp in pastPlay
-		char* currStr = strtok(gv->pastPlays, "/n");
-		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
-			currStr = strtok(gv->pastPlays, "/n");
-		}
-		while (currStr != NULL) 
-			currStr = strtok(NULL, ".... ");
-		//read drac loc, assign to location of vampire
 		
-		//if hunters have not visited the city vamp is spawned in,
-			if (/*Drac's CITY is revealed in pastPlay when V is spawned*/gv)
-				return /*Drac's CITY when V is spawned*/CITY_UNKNOWN;
-			else
-				return CITY_UNKNOWN;
+
+		//////////////////////////////////////
+		//		NOT SURE IF THIS WORKS		//
+		//////////////////////////////////////
+
+		//find location of vamp in pastPlay
+		char *currStr = strtok(gv->pastPlays, "\n");
+		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
+			currStr = strtok(gv->pastPlays, "\n");
+		}
+
+		// the rest should work
+
+		char *prevStr;
+		char vampLoc[LOCATION_ABBREVIATION_MAX];
+		//read Dracula location when V was spawned and assign it as vampire's location
+		while (currStr != NULL) {
+			if (strcmp(currStr, "V") == 0) {
+				vampLoc[0] = prevStr[1];
+		    	vampLoc[1] = prevStr[2];
+		    	break;
+			}
+			prevStr = currStr;
+			currStr = strtok(NULL, ". ");
+		}
+		//vampire cannot exist in the sea
+		if (strcmp(vampLoc, "S?") == 0) 
+			return NOWHERE;
+		//city is not revealed
+		if (strcmp(vampLoc, "C?") == 0 )
+			return CITY_UNKNOWN;
+		//search if hunters have visited vampire's city
+		char *hunterLoc = &currStr[1];
+		while (currStr != NULL) {
+			currStr = strtok(NULL, ". \n");
+			hunterLoc = &currStr[1];
+			if (currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
+				//vampire has been vanquished
+				return NOWHERE;
+		}
+		//hunters have not visited city the vampire is in
+		return placeAbbrevToId(vampLoc);
 	}
-	//vampire not immature, not spawned or vanquished
+	//vampire not spawned, not immature or has been vanquished
 	return NOWHERE;
 }
 
