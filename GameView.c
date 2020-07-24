@@ -45,6 +45,7 @@ struct gameView {
 // declare your own functions here
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
+char convertToPlayer(Player player);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -251,14 +252,19 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 {
 	PlaceId *lastNMoves = malloc(numMoves * sizeof(PlaceId));
 	*numReturnedMoves = 0;
+	char playerChar = convertToPlayer(player);
+	
 	// for each round in the string
-	for (int i = 0; i < gv->roundNum; i++) {
-		if (gv->pastPlays[i * ROUND_DIFF] == player) {
+	for (int i = 0; i < gv->roundNum, *numReturnedMoves < numMoves; i++) {
+		// check if current round involves the player
+		if (gv->pastPlays[i * ROUND_DIFF] == playerChar) {
+			// convert the location to an abbrev and add it the array
 			char abbrev[3] = {gv->pastPlays[i * ROUND_DIFF+1], gv->pastPlays[i * ROUND_DIFF+2], '\0'};
 			lastNMoves[*numReturnedMoves] = placeAbbrevToId(abbrev);
 			(*numReturnedMoves)++;
 		}
 	}
+	
 	*canFree = true;
 	return lastNMoves;
 }
@@ -425,4 +431,29 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
 	}
+}
+
+// convert a Player to a char and return it
+char convertToPlayer(Player player) {
+	char playerChar;
+	assert(player >= 0 && player <= 4);
+	switch(player) {
+		case PLAYER_LORD_GODALMING:
+			playerChar = 'G';
+			break;
+		case PLAYER_DR_SEWARD:
+			playerChar = 'S';
+			break;
+		case PLAYER_VAN_HELSING:
+			playerChar = 'H';
+			break;
+		case PLAYER_MINA_HARKER:
+			playerChar = 'M';
+			break;
+		case PLAYER_DRACULA:
+			playerChar = 'D';				
+			break;
+	}
+
+	return playerChar;
 }
