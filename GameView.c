@@ -191,8 +191,7 @@ PlaceId GvGetVampireLocation(GameView gv)
 	//an immature vampire exists
 	if (0 <= r && r < 6) {
 		//temp copy of pastPlays for strtok
-		char pastPlayCpy[strlen(pastPlays)];
-		strcpy(pastPlayCpy, gv->pastPlays);
+		char *pastPlayCpy = malloc(strlen(gv->pastPlays) * sizeof(char));
 		//find location of vamp in pastPlay
 		char *currStr = strtok(pastPlayCpy, "\n");
 		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
@@ -257,7 +256,6 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     
     int n = gv->roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
-
     for (int i = n; i < gv->roundNum; i++) {
         if (gv->allPlayers[PLAYER_DRACULA].prevMoves[i].name != NULL && gv->allPlayers[PLAYER_DRACULA].prevMoves[i].type == LAND) {
             trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i].id;
@@ -304,8 +302,23 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	*numReturnedLocs = 0;
-	*canFree = false;
-	return 0;
+	PlaceId *lastLocations = malloc(numLocs * (sizeof(PlaceId)));
+	*canFree = true;
+
+	/*int playerMaxMoves = 0;
+	//calculate the array length for the player's last move 
+	for (int i = 0; gv->playerInfo[player].currLocation[j] != NULL; i++)
+		playerMaxMoves++;
+	int j = playerMaxMoves;*/
+
+	int j = gv->roundNum - numLocs + 1;
+	//insert player location from (total moves - numLocs) to total moves
+	while (gv->allPlayers[player].prevMoves[j].name != NULL && j <= gv->roundNum) {
+		lastLocations[*numReturnedLocs] = gv->allPlayers[player].prevMoves[j].id;
+		(*numReturnedLocs)++;
+		j++;
+	}	
+	return lastLocations;
 }
 
 ////////////////////////////////////////////////////////////////////////
