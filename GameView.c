@@ -406,7 +406,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 	
 	//count max num of connections to from
 	int connectionNum = 0;
-	for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
+	for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
 		if (CONNECTIONS[i].v == from) {
 			connectionNum++;
 		}
@@ -414,13 +414,18 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 
 	PlaceId *reachable = malloc(connectionNum*sizeof(PlaceId));
 	
+	//set all fields to UNKNOWN_PLACE
+    for (int i = 0; i <= connectionNum; i++) {
+	    reachable[i] = UNKNOWN_PLACE;
+    }
+	
 	//array includes the given location
 	reachable[0] = from;
 	int j = 1;
 	//player is a hunter
 	if (player != PLAYER_DRACULA) {
-		int railDistance = (player + round) % 4;
-		for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
+		//int railDistance = (player + round) % 4;
+		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
 			if (CONNECTIONS[i].v == from && isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
 				if (CONNECTIONS[i].t == RAIL /*&& not in range of railDistance*/) {
 					continue;
@@ -433,7 +438,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 		return reachable;
 	}
 	//player is Dracula
-	for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
+	for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
 		if (CONNECTIONS[i].v == from && CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY && CONNECTIONS[i].t != RAIL 
 			&& isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
 			reachable[j] = CONNECTIONS[i].w;
@@ -514,7 +519,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 
 //determines whether a location is already a member of reachable (locations)
 int isReachableMember(PlaceId *reachable, PlaceId w) {
-	for (int i = 0; reachable[i] != NULL; i++) {
+	for (int i = 0; reachable[i] != UNKNOWN_PLACE; i++) {
 		if (reachable[i] == w) {
 			return IS_MEMBER;
 		}
