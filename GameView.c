@@ -50,6 +50,8 @@ struct gameView {
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
 
+int isReachableMember(PlaceId *reachable, PlaceId w)
+
 char convertToPlayer(Player player);
 void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int railDistance,
 int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
@@ -401,8 +403,8 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	
 	//count max num of connections to from
-	int i = connectionNum;
-	for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+	int connectionNum = 0;
+	for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
 		if (CONNECTIONS[i].v == from) {
 			connectionNum++;
 		}
@@ -416,7 +418,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 	//player is a hunter
 	if (player != PLAYER_DRACULA) {
 		int railDistance = (player + round) % 4;
-		for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+		for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
 			if (CONNECTIONS[i].v == from && isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
 				if (CONNECTIONS[i].t == RAIL /*&& not in range of railDistance*/) {
 					continue;
@@ -429,7 +431,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 		return reachable;
 	}
 	//player is Dracula
-	for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+	for (int i = 0; CONNECTIONS[i].v != NULL; i++) {
 		if (CONNECTIONS[i].v == from && CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY && CONNECTIONS[i].t != RAIL 
 			&& isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
 			reachable[j] = CONNECTIONS[i].w;
