@@ -21,6 +21,8 @@
 #include "Places.h"
 
 // add your own #includes here
+#define NOT_MEMBER 0
+#define IS_MEMBER 1
 #define PLACE_POS 6
 #define PLAYER_POS 7
 #define ROUND_DIFF 8
@@ -45,6 +47,7 @@ struct gameView {
 // declare your own functions here
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
+int isReachableMember(PlaceId *reachable, PlaceId w);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -184,16 +187,49 @@ PlaceId GvGetVampireLocation(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 
-	//there is an immature vampire
-	if (0 <= (gv->roundNum - 1 % 13) && (gv->roundNum - 1 % 13) < 6) {
-		//find location of vamp in pastPlay or Dracula's prevMoves
-		//if hunters have not visited the city vamp is spawned in,
-			if (/*Drac's CITY is revealed in pastPlay when V is spawned*/gv) 
-				return /*Drac's CITY when V is spawned*/CITY_UNKNOWN;
-			else
-				return CITY_UNKNOWN;
+	// Gets the location of the sleeping immature vampire.
+	
+	int r = (gv->roundNum - 1) % 13;
+	//an immature vampire exists
+	if (0 <= r && r < 6) {
+		//temp copy of pastPlays for strtok
+		char *pastPlayCpy = malloc(strlen(gv->pastPlays) * sizeof(char));
+		//find location of vamp in pastPlay
+		char *currStr = strtok(pastPlayCpy, "\n");
+		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
+			currStr = strtok(pastPlayCpy, "\n");
+		}
+		char *prevStr;
+		char vampLoc[LOCATION_ABBREVIATION_MAX];
+		//read Dracula location when V was spawned and assign it as vampire's location
+		while (currStr != NULL) {
+			if (strcmp(currStr, "V") == 0) {
+				vampLoc[0] = prevStr[1];
+		    	vampLoc[1] = prevStr[2];
+		    	break;
+			}
+			prevStr = currStr;
+			currStr = strtok(NULL, ". ");
+		}
+		//vampire cannot exist in the sea
+		if (strcmp(vampLoc, "S?") == 0) 
+			return NOWHERE;
+		//city is not revealed
+		if (strcmp(vampLoc, "C?") == 0 )
+			return CITY_UNKNOWN;
+		//search if hunters have visited vampire's city
+		char *hunterLoc = &currStr[1];
+		while (currStr != NULL) {
+			currStr = strtok(NULL, ". \n");
+			hunterLoc = &currStr[1];
+			if (currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
+				//vampire has been vanquished
+				return NOWHERE;
+		}
+		//hunters have not visited city the vampire is in
+		return placeAbbrevToId(vampLoc);
 	}
-	//vampire not immature, not spawned or vanquished
+	//vampire not spawned, not immature or has been vanquished
 	return NOWHERE;
 }
 
@@ -313,8 +349,23 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	*numReturnedLocs = 0;
-	*canFree = false;
-	return 0;
+	PlaceId *lastLocations = malloc(numLocs * (sizeof(PlaceId)));
+	*canFree = true;
+
+	/*int playerMaxMoves = 0;
+	//calculate the array length for the player's last move 
+	for (int i = 0; gv->playerInfo[player].currLocation[j] != NULL; i++)
+		playerMaxMoves++;
+	int j = playerMaxMoves;*/
+
+	int j = gv->roundNum - numLocs + 1;
+	//insert player location from (total moves - numLocs) to total moves
+	while (gv->allPlayers[player].prevMoves[j].name != NULL && j <= gv->roundNum) {
+		lastLocations[*numReturnedLocs] = gv->allPlayers[player].prevMoves[j].id;
+		(*numReturnedLocs)++;
+		j++;
+	}	
+	return lastLocations;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -333,14 +384,61 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               bool boat, int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+
+	//count max num of connections to from
+	int i = connectionNum;
+	for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+		if (CONNECTIONS[i].v == from) {
+			connectionNum++;
+		}
+	}
+
+	PlaceId *reachable = malloc(connectionNum*sizeof(PlaceId));
+	
+	//array includes the given location
+	reachable[0] = from;
+	int j = 1;
+	//player is a hunter
+	if (player != PLAYER_DRACULA) {
+		int railDistance = (player + round) % 4;
+		for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+			if (CONNECTIONS[i].v == from && isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
+				if (CONNECTIONS[i].t == RAIL /*&& not in range of railDistance*/) {
+					continue;
+				}
+				reachable[j] = CONNECTIONS[i].w;
+				j++;
+			}
+		}
+		*numReturnedLocs = j;
+		return reachable;
+	}
+	//player is Dracula
+	for (int i = 0; CONNECTIONS[i] != NULL; i++) {
+		if (CONNECTIONS[i].v == from && CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY && CONNECTIONS[i].t != RAIL 
+			&& isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
+			reachable[j] = CONNECTIONS[i].w;
+			j++;
+		}
+	}
+	*numReturnedLocs = j;
+	return reachable;
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
 
 // TODO
+
+//determines whether a location is already a member of reachable (locations)
+int isReachableMember(PlaceId *reachable, PlaceId w) {
+	for (int i = 0; reachable[i] != NULL; i++) {
+		if (reachable[i] == w) {
+			return IS_MEMBER;
+		}
+	}
+	return NOT_MEMBER;
+}
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
