@@ -50,7 +50,7 @@ struct gameView {
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
 
-int isReachableMember(PlaceId *reachable, PlaceId w)
+int isReachableMember(PlaceId *reachable, PlaceId w);
 
 char convertToPlayer(Player player);
 void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int railDistance,
@@ -286,7 +286,7 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	
-	PlaceId *MoveHistory = malloc(gv->roundMoves * sizeof(PlaceId));
+	PlaceId *MoveHistory = malloc(gv->roundNum * sizeof(PlaceId));
 	*numReturnedMoves = 0;
 	
 	char playerChar = convertToPlayer(player);
@@ -298,7 +298,7 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 		}
 	}
 	
-	MoveHistory = realloc(MoveHistory, numReturnedMoves * sizeof(PlaceId));
+	MoveHistory = realloc(MoveHistory, *numReturnedMoves * sizeof(PlaceId));
 	
 	*canFree = true;
 	return MoveHistory;
