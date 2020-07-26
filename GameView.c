@@ -23,6 +23,8 @@
 // add your own #includes here
 #define NOT_MEMBER 0
 #define IS_MEMBER 1
+#define LOCATION_ABBREVIATION_MAX 3
+
 #define PLACE_POS 6
 #define PLAYER_POS 7
 #define ROUND_DIFF 8
@@ -185,7 +187,6 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 
 PlaceId GvGetVampireLocation(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 
 	// Gets the location of the sleeping immature vampire.
 	
@@ -259,7 +260,6 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 
     int n = gv->roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
-
     for (int i = n; i < gv->roundNum; i++) {
         if (gv->allPlayers[PLAYER_DRACULA].prevMoves[i].name != NULL && gv->allPlayers[PLAYER_DRACULA].prevMoves[i].type == LAND) {
             trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i].id;
