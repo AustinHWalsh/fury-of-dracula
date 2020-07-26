@@ -264,31 +264,38 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 	return lastNMoves;
 }
 
+
 PlaceId *GvGetLocationHistory(GameView gv, Player player,
                               int *numReturnedLocs, bool *canFree)
 {
+	
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	
 	PlaceId *LocationsHistory = malloc( gv->roundNum * (sizeof(PlaceId)));
 
 	//check if input is valid
     assert(gv != NULL);
-    assert(player >= 0 && player <= NUM_PLAYERS);
-    assert(allPlayers.prevMoves != NULL);
+    assert(player >= 0 && player <= 5);
+    assert(gv->allPlayers->prevMoves != NULL);
 	
 	for (int i = 0; i < gv->roundNum ; i++) {
-		if (allPlayers.name[i] != PLAYER_DRACULA) {
-			LocationsHistory[*numReturnedLocs] = gv->playerInfo[player].currLocation[i]->id;
+		if (gv->allPlayers[i].name != PLAYER_DRACULA) {
+			LocationsHistory[*numReturnedLocs] = gv->allPlayers[i].currLocation.id;
 			(*numReturnedLocs)++;
 		} 
-		else if (allPlayers.name[i] == PLAYER_DRACULA) {
-			if (/*location is in pastPlays*/ gv) 
-				LocationsHistory[*numReturnedLocs] = gv->allPlayers[PLAYER_DRACULA].currLocation[i].id;
+		else if (gv->allPlayers[i].name == PLAYER_DRACULA) {
+			if (gv->allPlayers[PLAYER_DRACULA].currLocation.id != CITY_UNKNOWN && gv->allPlayers[PLAYER_DRACULA].currLocation.id != SEA_UNKNOWN) {
+					LocationsHistory[*numReturnedLocs] = gv->allPlayers[PLAYER_DRACULA].currLocation.id;
+					(*numReturnedLocs)++;
+			}		
 			else {
 				if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == SEA) {
-					LocationsHistory[*numReturnedLocs] ==  SEA_UNKNOWN;
+					LocationsHistory[*numReturnedLocs] = SEA_UNKNOWN;
+					(*numReturnedLocs)++;
 				}
 				else if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == LAND) {
-					LocationsHistory[*numReturnedLocs] == CITY_UNKNOWN;
+					LocationsHistory[*numReturnedLocs] = CITY_UNKNOWN;
+					(*numReturnedLocs)++;
 				}
 			}
 		}
@@ -297,7 +304,7 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
 	return LocationsHistory;
 	//return *numReturnedLocs;
 	//*numReturnedLocs = 0;
-	*canFree = TRUE;
+	*canFree = true;
 	//return NULL;
 }
 
