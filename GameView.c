@@ -67,10 +67,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 		exit(EXIT_FAILURE);
 	}
 
-	///////////////////////////////////////////
-	//				NOT SURE				 //
-	//				ABOUT THIS				 //
-	///////////////////////////////////////////
+	// copy the pastplays string
+	new->pastPlays = malloc(strlen(pastPlays) * sizeof(char));
 	memcpy(new->pastPlays, pastPlays, strlen(pastPlays));
 		
 	new->m = MapNew();
@@ -97,8 +95,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 		
 		// set current location of player
 		new->allPlayers[i].currLocation.id = GvGetPlayerLocation(new, new->allPlayers[i].name);
-		new->allPlayers[i].currLocation.name = placeIdToName(new->allPlayers[i].currLocation.id);
-		new->allPlayers[i].currLocation.abbrev = placeIdToAbbrev(new->allPlayers[i].currLocation.id);
+		strcpy(new->allPlayers[i].currLocation.name, placeIdToName(new->allPlayers[i].currLocation.id));
+		strcpy(new->allPlayers[i].currLocation.abbrev, placeIdToAbbrev(new->allPlayers[i].currLocation.id));
 		new->allPlayers[i].currLocation.type = placeIdToType(new->allPlayers[i].currLocation.id);
 	}
 	
@@ -112,13 +110,11 @@ void GvFree(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	for(int i = 0; i <= NUM_PLAYERS; i++) {
-		free(gv->allplayers[i]->prevMoves);
+		free(gv->allPlayers[i].prevMoves);
 	}
 	
-	for(int j = 0; j <= NUM_PLAYERS; j++) {
-		free(gv->allplayers[j]);
-	}
-	
+	free(gv->allPlayers);
+		
 	free(gv);
 }
 
@@ -163,8 +159,9 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 					return gv->allPlayers[i].currLocation.id;
 			//player is Dracula
 			} else {
-				//Dracula's location is revealed
-				if (/*location is in pastPlays*/ gv) {
+				//Dracula's location is revealed (not unknown)
+				if (gv->allPlayers[PLAYER_DRACULA].currLocation.id != CITY_UNKNOWN
+					&& gv->allPlayers[PLAYER_DRACULA].currLocation.id != SEA_UNKNOWN) {
 					return gv->allPlayers[PLAYER_DRACULA].currLocation.id;
 				//Dracula's location unknown
 				} else {
@@ -223,12 +220,13 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
     
-    int n = gv.roundNum - TRAIL_SIZE;
+
+    int n = gv->roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
 
-    for (int i = n; i < gv.roundNum; i++) {
-        if (playerInfo[PLAYER_DRACULA].prevMoves[i] != NULL && playerInfo[PLAYER_DRACULA].prevMoves[i]->type == LAND) {
-            trapLocations[*numTraps] = playerInfo[PLAYER_DRACULA].prevMoves[i]->id;
+    for (int i = n; i < gv->roundNum; i++) {
+        if (gv->allPlayers[PLAYER_DRACULA].prevMoves[i].name != NULL && gv->allPlayers[PLAYER_DRACULA].prevMoves[i].type == LAND) {
+            trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i].id;
             (*numTraps)++;
         } 
 		
@@ -236,7 +234,7 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     
     //*numTraps = 0;
     return NULL;
-
+}
 ////////////////////////////////////////////////////////////////////////
 // Game History
 
@@ -252,10 +250,18 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
                         int *numReturnedMoves, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	PlaceId *lastNMoves = malloc(numMoves * sizeof(PlaceId));
 	*numReturnedMoves = 0;
-	*canFree = false;
-	return NULL;
+	// for each round in the string
+	for (int i = 0; i < gv->roundNum; i++) {
+		if (gv->pastPlays[i * ROUND_DIFF] == player) {
+			char abbrev[3] = {gv->pastPlays[i * ROUND_DIFF+1], gv->pastPlays[i * ROUND_DIFF+2], '\0'};
+			lastNMoves[*numReturnedMoves] = placeAbbrevToId(abbrev);
+			(*numReturnedMoves)++;
+		}
+	}
+	*canFree = true;
+	return lastNMoves;
 }
 
 
@@ -346,9 +352,9 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 		// first empty stop in trail
 		if (gv->allPlayers[player].prevMoves[i].name == NULL) {
 			gv->allPlayers[player].prevMoves[i].id = cityId;
-			gv->allPlayers[player].prevMoves[i].name = placeIdToName(cityId);
 			gv->allPlayers[player].prevMoves[i].type = placeIdToType(cityId);
-			gv->allPlayers[player].prevMoves[i].abbrev = placeIdToAbbrev(cityId);
+			strcpy(gv->allPlayers[player].prevMoves[i].name, placeIdToName(cityId));
+			strcpy(gv->allPlayers[player].prevMoves[i].abbrev, placeIdToAbbrev(cityId));
 			return;
 		}
 	}
@@ -359,16 +365,16 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 	PlaceId cityIdTemp2 = gv->allPlayers[player].prevMoves[1].id;
 	// set the first place in the array
 	gv->allPlayers[player].prevMoves[0].id = cityId;
-	gv->allPlayers[player].prevMoves[0].name = placeIdToName(cityId);
+	strcpy(gv->allPlayers[player].prevMoves[0].name, placeIdToName(cityId));
+	strcpy(gv->allPlayers[player].prevMoves[0].abbrev, placeIdToAbbrev(cityId));
 	gv->allPlayers[player].prevMoves[0].type = placeIdToType(cityId);
-	gv->allPlayers[player].prevMoves[0].abbrev = placeIdToAbbrev(cityId);
 	// set the remaining in the trail
 	for (int i = 1; i < TRAIL_SIZE; i++) {
 		cityIdTemp2 = gv->allPlayers[player].prevMoves[i].id;
 		gv->allPlayers[player].prevMoves[i].id = cityIdTemp;
-		gv->allPlayers[player].prevMoves[i].name = placeIdToName(cityIdTemp);
+		strcpy(gv->allPlayers[player].prevMoves[i].name, placeIdToName(cityId));
+		strcpy(gv->allPlayers[player].prevMoves[i].abbrev, placeIdToAbbrev(cityId));
 		gv->allPlayers[player].prevMoves[i].type = placeIdToType(cityIdTemp);
-		gv->allPlayers[player].prevMoves[i].abbrev = placeIdToAbbrev(cityIdTemp);
 		cityIdTemp = cityIdTemp2;
 	}
 } 
