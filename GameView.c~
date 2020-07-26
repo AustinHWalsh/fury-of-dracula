@@ -23,8 +23,6 @@
 // add your own #includes here
 #define NOT_MEMBER 0
 #define IS_MEMBER 1
-#define LOCATION_ABBREVIATION_MAX 3
-
 #define PLACE_POS 6
 #define PLAYER_POS 7
 #define ROUND_DIFF 8
@@ -187,6 +185,7 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 
 PlaceId GvGetVampireLocation(GameView gv)
 {
+	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 
 	// Gets the location of the sleeping immature vampire.
 	
@@ -260,6 +259,7 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 
     int n = gv->roundNum - TRAIL_SIZE;
     if (n < 0) n = 0;
+
     for (int i = n; i < gv->roundNum; i++) {
         if (gv->allPlayers[PLAYER_DRACULA].prevMoves[i].name != NULL && gv->allPlayers[PLAYER_DRACULA].prevMoves[i].type == LAND) {
             trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i].id;
@@ -619,60 +619,5 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			else if (gv->allPlayers[roundPlayer].currLocation.id == CASTLE_DRACULA)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
-	}
-}
-
-// convert a Player to a char and return it
-char convertToPlayer(Player player) {
-	char playerChar;
-	assert(player >= 0 && player <= 4);
-	switch(player) {
-		case PLAYER_LORD_GODALMING:
-			playerChar = 'G';
-			break;
-		case PLAYER_DR_SEWARD:
-			playerChar = 'S';
-			break;
-		case PLAYER_VAN_HELSING:
-			playerChar = 'H';
-			break;
-		case PLAYER_MINA_HARKER:
-			playerChar = 'M';
-			break;
-		case PLAYER_DRACULA:
-			playerChar = 'D';				
-			break;
-	}
-
-	return playerChar;
-}
-
-// add all possible rail locations to the reacharray, only while the hunter
-// can move through another rail. 
-void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *railDistance,
-	int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
-
-	// base case when the hunter has run out of rail moves
-	if (railDistance < 1)
-		return;
-	else {
-		// when the passed location is not a previously added one
-		if (visitedLocs[reachList->p] == 0) {
-			// add the current vertice to the list
-			reachArray[(*numReturnedLocs)++] = reachList->p; 
-			// make sure it isnt visited again
-			visitedLocs[reachList->p]++;
-			// reduce the number of rail trips left by 1
-			(*railDistance--);
-			
-			// get all the connections of the current vertice
-			ConnList curr = MapGetConnections(gv->m, reachList->p);
-			// loop through each one and recur the function if it is a rail connection
-			while (curr != NULL) {
-				if (curr->type == RAIL)
-					recurAddRail(gv, reachList, reachArray, railDistance, numReturnedLocs, visitedLocs);
-				curr = curr->next;
-			}
-		} 
 	}
 }
