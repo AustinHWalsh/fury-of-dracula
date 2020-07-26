@@ -40,7 +40,7 @@ typedef struct playerInfo {
 struct gameView {
 	Round roundNum;							// number of rounds that have passed
 	int gameScore;							// current game score
-	char *pastPlays; 						// string of past plays !!!THIS NEEDS TO BE TALKED ABOUT!!!
+	char *pastPlays; 						// string of past plays 
 	Player currPlayer;						// the "name" of the current player
 	Map m;									// graph of the locations
 	PlayerInfo *allPlayers;					// array of player informations
@@ -49,7 +49,11 @@ struct gameView {
 // declare your own functions here
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
-int isReachableMember(PlaceId *reachable, PlaceId w);
+
+char convertToPlayer(Player player);
+void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int railDistance,
+int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
+
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -99,7 +103,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 			new->allPlayers[i].health = GAME_START_BLOOD_POINTS;
 		
 		// set current location of player
-		new->allPlayers[i].currLocation.id = GvGetPlayerLocation(new, new->allPlayers[i].name);
+		char cityAbbrev[3] = {pastPlays[(new->roundNum * ROUND_DIFF)+1], pastPlays[(new->roundNum * ROUND_DIFF)+2], '\0'};
+		new->allPlayers[i].currLocation.id = placeAbbrevToId(cityAbbrev);
 		strcpy(new->allPlayers[i].currLocation.name, placeIdToName(new->allPlayers[i].currLocation.id));
 		strcpy(new->allPlayers[i].currLocation.abbrev, placeIdToAbbrev(new->allPlayers[i].currLocation.id));
 		new->allPlayers[i].currLocation.type = placeIdToType(new->allPlayers[i].currLocation.id);
@@ -302,14 +307,19 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 {
 	PlaceId *lastNMoves = malloc(numMoves * sizeof(PlaceId));
 	*numReturnedMoves = 0;
+	char playerChar = convertToPlayer(player);
+	
 	// for each round in the string
-	for (int i = 0; i < gv->roundNum; i++) {
-		if (gv->pastPlays[i * ROUND_DIFF] == player) {
+	for (int i = 0; i < gv->roundNum, *numReturnedMoves < numMoves; i++) {
+		// check if current round involves the player
+		if (gv->pastPlays[i * ROUND_DIFF] == playerChar) {
+			// convert the location to an abbrev and add it the array
 			char abbrev[3] = {gv->pastPlays[i * ROUND_DIFF+1], gv->pastPlays[i * ROUND_DIFF+2], '\0'};
 			lastNMoves[*numReturnedMoves] = placeAbbrevToId(abbrev);
 			(*numReturnedMoves)++;
 		}
 	}
+	
 	*canFree = true;
 	return lastNMoves;
 }
@@ -434,7 +444,6 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               PlaceId from, bool road, bool rail,
                               bool boat, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 
 	// adjacency list of the connections leaving the from location
 	ConnList currentReach = MapGetConnections(gv->m, from);
@@ -472,7 +481,9 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 		while (curr != NULL) {
 			int railDistance = (round + player) % 4;
 
-			// test the connection distance
+
+			// determine which type of connection can be added
+
 			if (rail && curr->type == RAIL)
 				recurAddRail(gv, curr, reachableConn, &railDistance, *numReturnedLocs,
 					visitedLocations);
@@ -482,7 +493,10 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 				reachableConn[(*numReturnedLocs)++] = curr->p; visitedLocations[curr->p]++;
 			curr = curr->next;
 		}
+
+			
 	}
+
 	return reachableConn;
 }
 
@@ -576,31 +590,36 @@ void completePastPlays(GameView gv, char *pastPlays) {
 
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
+			// if they are in the hospital because of losing lifepoints
+			if (GvGetPlayerLocation(gv, roundPlayer) == ST_JOSEPH_AND_ST_MARY && gv->allPlayers[roundPlayer].health <= 0)
+				gv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
+
 			// check each action in the round
 			for (int i = 0; pastPlays[startOfRound+i] != '.'; i++) {
 				switch(startOfRound+i) {
-					case 'T':
+					case 'T': // encountered trap
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_TRAP_ENCOUNTER;
 						break;
-					case 'D':
+					case 'D': // endcountered dracula
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_DRACULA_ENCOUNTER;
 						gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_HUNTER_ENCOUNTER;
 						break;
 				}
 			}
 
+			// when the hunter loses all their health, determine what to
 			if (gv->allPlayers[roundPlayer].health <= 0) {
-				/* set trail to hospital */
-				// TODO
 				gv->allPlayers[roundPlayer].health = 0;
 				gv->gameScore -= SCORE_LOSS_HUNTER_HOSPITAL;
+				return;
 			}
 
 			// when the player didnt move and didnt just get sent to hospital
-			if (gv->allPlayers[roundPlayer].prevMoves[0].name == gv->allPlayers[roundPlayer].prevMoves[1].name
+			if (strcmp(gv->allPlayers[roundPlayer].prevMoves[0].name, gv->allPlayers[roundPlayer].prevMoves[1].name) == 0
 				&& gv->allPlayers[roundPlayer].health > 0)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_REST;
 
+			// reduce hunters health to max if it is over
 			if (gv->allPlayers[roundPlayer].health > GAME_START_HUNTER_LIFE_POINTS)
 				gv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
@@ -612,8 +631,8 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			}
 
 			// if drac just moved to the sea
-			/* i think this is enough? */
-			if (gv->allPlayers[roundPlayer].currLocation.id == SEA_UNKNOWN)
+			if (gv->allPlayers[roundPlayer].currLocation.id == SEA_UNKNOWN ||
+				placeIsSea(gv->allPlayers[roundPlayer].currLocation.id))
 				gv->allPlayers[roundPlayer].health -= LIFE_LOSS_SEA;
 
 			else if (gv->allPlayers[roundPlayer].currLocation.id == CASTLE_DRACULA)
@@ -675,4 +694,5 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 			}
 		} 
 	}
+
 }
