@@ -262,22 +262,36 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
                               int *numReturnedLocs, bool *canFree)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	PlaceId *LocationsHistory = malloc( ______ * (sizeof(PlaceId)));
+	PlaceId *LocationsHistory = malloc( gv->roundNum * (sizeof(PlaceId)));
 
 	//check if input is valid
     assert(gv != NULL);
     assert(player >= 0 && player <= NUM_PLAYERS);
     assert(allPlayers.prevMoves != NULL);
-
-    
-    for (int i = gv.roundNum; i >= 0 ; i--) {
-        LocationsHistory[numReturnedLocs] = gv->playerInfo[player].currLocation[i]->id;
-		(*numReturnedLocs)++;	
+	
+	for (int i = 0; i < gv->roundNum ; i++) {
+		if (allPlayers.name[i] != PLAYER_DRACULA) {
+			LocationsHistory[*numReturnedLocs] = gv->playerInfo[player].currLocation[i]->id;
+			(*numReturnedLocs)++;
+		} 
+		else if (allPlayers.name[i] == PLAYER_DRACULA) {
+			if (/*location is in pastPlays*/ gv) 
+				LocationsHistory[*numReturnedLocs] = gv->allPlayers[PLAYER_DRACULA].currLocation[i].id;
+			else {
+				if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == SEA) {
+					LocationsHistory[*numReturnedLocs] ==  SEA_UNKNOWN;
+				}
+				else if (gv->allPlayers[PLAYER_DRACULA].currLocation.type == LAND) {
+					LocationsHistory[*numReturnedLocs] == CITY_UNKNOWN;
+				}
+			}
+		}
 	}
+
 	return LocationsHistory;
-	return *numReturnedLocs;
+	//return *numReturnedLocs;
 	//*numReturnedLocs = 0;
-	*canFree = false;
+	*canFree = TRUE;
 	//return NULL;
 }
 
