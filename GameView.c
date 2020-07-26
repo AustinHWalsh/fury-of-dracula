@@ -53,7 +53,7 @@ void completePastPlays(GameView gv, char *pastPlays);
 int isReachableMember(PlaceId *reachable, PlaceId w);
 
 char convertToPlayer(Player player);
-void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int railDistance,
+void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *railDistance,
 int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
 
 
@@ -312,7 +312,9 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 	char playerChar = convertToPlayer(player);
 	
 	// for each round in the string
-	for (int i = 0; i < gv->roundNum, *numReturnedMoves < numMoves; i++) {
+	for (int i = 0; i < gv->roundNum; i++) {
+		if (*numReturnedMoves < numMoves)
+			break;
 		// check if current round involves the player
 		if (gv->pastPlays[i * ROUND_DIFF] == playerChar) {
 			// convert the location to an abbrev and add it the array
@@ -481,18 +483,21 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 
 	} else { // hunters move
 		while (curr != NULL) {
-			int railDistance = (round + player) % 4;
-
-
+			int railCount = (round + player) % 4;
+			int *railDistance = &railCount;
 			// determine which type of connection can be added
 
 			if (rail && curr->type == RAIL)
-				recurAddRail(gv, curr, reachableConn, &railDistance, *numReturnedLocs,
+				recurAddRail(gv, curr, reachableConn, railDistance, numReturnedLocs,
 					visitedLocations);
-			else if (road && curr->type == ROAD)
+			else if (road && curr->type == ROAD) {
 				reachableConn[(*numReturnedLocs)++] = curr->p;
-			else if (boat && curr->type == BOAT)
-				reachableConn[(*numReturnedLocs)++] = curr->p; visitedLocations[curr->p]++;
+				visitedLocations[curr->p]++;
+			} else if (boat && curr->type == BOAT) {
+				reachableConn[(*numReturnedLocs)++] = curr->p; 
+				visitedLocations[curr->p]++;
+			}
+				
 			curr = curr->next;
 		}
 
@@ -674,7 +679,7 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 	int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
 
 	// base case when the hunter has run out of rail moves
-	if (railDistance < 1)
+	if (*railDistance < 1)
 		return;
 	else {
 		// when the passed location is not a previously added one
@@ -684,7 +689,7 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 			// make sure it isnt visited again
 			visitedLocs[reachList->p]++;
 			// reduce the number of rail trips left by 1
-			(*railDistance--);
+			(*railDistance)--;
 			
 			// get all the connections of the current vertice
 			ConnList curr = MapGetConnections(gv->m, reachList->p);
