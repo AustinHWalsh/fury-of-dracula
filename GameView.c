@@ -24,6 +24,8 @@
 #define NOT_MEMBER 0
 #define IS_MEMBER 1
 #define LOCATION_ABBREVIATION_MAX 3
+#define LOCATION_NAME_MAX strlen("ST_JOSEPH_AND_ST_MARY")
+#define TBA_LOCATION -10
 
 #define PLACE_POS 6
 #define PLAYER_POS 7
@@ -88,15 +90,21 @@ GameView GvNew(char *pastPlays, Message messages[])
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 		// set name
 		new->allPlayers[i].name = PLAYER_LORD_GODALMING + i;
-
+        
 		// create space for previous trails and fill them with NULL pointers
 		new->allPlayers[i].prevMoves = malloc(TRAIL_SIZE * sizeof(Place));
 		if (new->allPlayers[i].prevMoves == NULL) {
 			fprintf(stderr, "Couldn't allocate trail!\n");
 			exit(EXIT_FAILURE);
 		}
-		for (int j = 0; j < TRAIL_SIZE; j++) 
-			new->allPlayers[i].prevMoves[j].name = NULL;
+		for (int j = 0; j < TRAIL_SIZE; j++) {
+			new->allPlayers[i].prevMoves[j].name = 
+				malloc(LOCATION_NAME_MAX * sizeof(char));
+			new->allPlayers[i].prevMoves[j].abbrev =
+				malloc(LOCATION_ABBREVIATION_MAX * sizeof(char));
+			new->allPlayers[i].prevMoves[j].id = TBA_LOCATION;
+		}
+			
 
 		// set player heatlh
 		if (new->allPlayers[i].name != PLAYER_DRACULA)
@@ -105,26 +113,41 @@ GameView GvNew(char *pastPlays, Message messages[])
 			new->allPlayers[i].health = GAME_START_BLOOD_POINTS;
 		
 		// set current location of player
-		char cityAbbrev[3] = {pastPlays[(new->roundNum * ROUND_DIFF)+1], pastPlays[(new->roundNum * ROUND_DIFF)+2], '\0'};
+		char cityAbbrev[3] = {pastPlays[(new->roundNum * ROUND_DIFF)+1], 
+		    pastPlays[(new->roundNum * ROUND_DIFF)+2], '\0'};
 		new->allPlayers[i].currLocation.id = placeAbbrevToId(cityAbbrev);
-		strcpy(new->allPlayers[i].currLocation.name, placeIdToName(new->allPlayers[i].currLocation.id));
-		strcpy(new->allPlayers[i].currLocation.abbrev, placeIdToAbbrev(new->allPlayers[i].currLocation.id));
-		new->allPlayers[i].currLocation.type = placeIdToType(new->allPlayers[i].currLocation.id);
+		const char *nameLoc = placeIdToName(new->allPlayers[i].currLocation.id);
+		new->allPlayers[i].currLocation.name = 
+		    malloc(strlen(nameLoc) * sizeof(char));
+		strcpy(new->allPlayers[i].currLocation.name, nameLoc);
+		const char *abbre = placeIdToAbbrev(new->allPlayers[i].currLocation.id);
+		new->allPlayers[i].currLocation.abbrev = 
+		    malloc(strlen(abbre) * sizeof(char));
+		strcpy(new->allPlayers[i].currLocation.abbrev, abbre);
+		new->allPlayers[i].currLocation.type = 
+		    placeIdToType(new->allPlayers[i].currLocation.id);
 	}
 	
 	// fill in trails and calculate game scores and health
 	completePastPlays(new, pastPlays);
-
+    
 	return new;
 }
 
 void GvFree(GameView gv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	for(int i = 0; i <= NUM_PLAYERS; i++) {
+	for(int i = 0; i < NUM_PLAYERS; i++) {
+		for (int j = 0; j < TRAIL_SIZE; j++) {
+			free(gv->allPlayers[i].prevMoves[j].name);
+			free(gv->allPlayers[i].prevMoves[j].abbrev);
+		}
 		free(gv->allPlayers[i].prevMoves);
+		free(gv->allPlayers[i].currLocation.name);	
+		free(gv->allPlayers[i].currLocation.abbrev);	
 	}
 	
+	free(gv->pastPlays);
 	free(gv->allPlayers);
 		
 	free(gv);
@@ -135,8 +158,7 @@ void GvFree(GameView gv)
 
 Round GvGetRound(GameView gv)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return gv->roundNum;
+	return (gv->roundNum * 7)/40;
 }
 
 Player GvGetPlayer(GameView gv)
@@ -535,7 +557,7 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
 	for (int i = 0; i < TRAIL_SIZE; i++) {
 		// first empty stop in trail
-		if (gv->allPlayers[player].prevMoves[i].name == NULL) {
+		if (gv->allPlayers[player].prevMoves[i].id == TBA_LOCATION) {
 			gv->allPlayers[player].prevMoves[i].id = cityId;
 			gv->allPlayers[player].prevMoves[i].type = placeIdToType(cityId);
 			strcpy(gv->allPlayers[player].prevMoves[i].name, placeIdToName(cityId));
@@ -568,12 +590,31 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 // such as current score and player health
 // dependencies on the pastPlays string
 void completePastPlays(GameView gv, char *pastPlays) {
+	
+	// when its the first round
+	if (gv->roundNum == 0) {
+		gv->currPlayer = PLAYER_LORD_GODALMING;
+		for (int i = 0; i < NUM_PLAYERS; i++) {
+			Player roundPlayer = PLAYER_LORD_GODALMING + i;
+			// set all player's trail to NOWHERE
+			gv->allPlayers[roundPlayer].prevMoves[0].id = NOWHERE;
+			strcpy(gv->allPlayers[i].prevMoves[0].name, placeIdToName(NOWHERE));
+			strcpy(gv->allPlayers[i].prevMoves[0].abbrev, placeIdToAbbrev(NOWHERE));
+			gv->allPlayers[i].prevMoves[0].type = placeIdToType(NOWHERE);
+			// set remaining info
+			gv->allPlayers[i].name = roundPlayer;
+			if (roundPlayer != PLAYER_DRACULA)
+				gv->allPlayers[i].health = GAME_START_HUNTER_LIFE_POINTS;
+			else
+				gv->allPlayers[i].health = GAME_START_BLOOD_POINTS;
+		}
+	}
 
 	// do actions from each round
 	for (int i = 0; i < gv->roundNum; i++) {
 		// array position of the start of the round (players name)
 		int startOfRound = pastPlays[i * ROUND_DIFF];
-
+		
 		// get current round's player
 		Player roundPlayer;
 		switch(startOfRound) {
@@ -595,7 +636,7 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				gv->gameScore -= SCORE_LOSS_DRACULA_TURN;
 				break;
 		}
-
+        
 		gv->currPlayer = roundPlayer;
 		// add the player's current location to the trail
 		completePlayerTrails(gv, &pastPlays[startOfRound+1], roundPlayer);
@@ -651,6 +692,7 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
 	}
+	
 }
 
 // convert a Player to a char and return it
