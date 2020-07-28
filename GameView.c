@@ -196,23 +196,30 @@ PlaceId GvGetVampireLocation(GameView gv)
 
 	// Gets the location of the sleeping immature vampire.
 	
-	int r = (gv->roundNum - 1) % 13;
+	int r = (GvGetRound(gv) - 1) % 13;
 	//an immature vampire exists
 	if (0 <= r && r < 6) {
 		//temp copy of pastPlays for strtok
 		char *pastPlayCpy = malloc(strlen(gv->pastPlays) * sizeof(char));
+		strcpy(pastPlayCpy, gv->pastPlays);
 		//find location of vamp in pastPlay
 		char *currStr = strtok(pastPlayCpy, "\n");
-		for (int i = 0; i < gv->roundNum - r - 1; i++) { // go to correct roundNum line to search for V
+		// go to correct roundNum line to search for V
+		for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
 			currStr = strtok(pastPlayCpy, "\n");
 		}
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
+		//if no lines were skipped, read first playermove in the line
+		if (r == 0) {
+		    currStr = strtok(pastPlayCpy, ". ");
+		}
 		//read Dracula location when V was spawned and assign it as vampire's location
 		while (currStr != NULL) {
 			if (strcmp(currStr, "V") == 0) {
 				vampLoc[0] = prevStr[1];
 		    	vampLoc[1] = prevStr[2];
+		    	
 		    	break;
 			}
 			prevStr = currStr;
