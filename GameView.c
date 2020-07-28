@@ -57,7 +57,7 @@ int isReachableMember(PlaceId *reachable, PlaceId w);
 char convertToPlayer(Player player);
 void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *railDistance,
 int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
-
+PlaceId dracLocationDetail(GameView gv, bool updateHealth);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -72,7 +72,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	}
 	
 	// set up values
-	new->roundNum = strlen(pastPlays) / 7;
+	new->roundNum = (strlen(pastPlays)+1) / 8;
 	new->gameScore = GAME_START_SCORE;
 	new->allPlayers = malloc(NUM_PLAYERS * sizeof(PlayerInfo));
 	if (new->allPlayers == NULL) {
@@ -110,7 +110,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	
 	// fill in trails and calculate game scores and health
 	completePastPlays(new, pastPlays);
-    
+
 	return new;
 }
 
@@ -164,21 +164,7 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 			return gv->allPlayers[player].currLocation;
 	//player is Dracula
 	} else {
-		//Dracula's location is revealed (not unknown)
-		if (gv->allPlayers[PLAYER_DRACULA].currLocation != CITY_UNKNOWN
-			&& gv->allPlayers[PLAYER_DRACULA].currLocation != SEA_UNKNOWN) {
-			return gv->allPlayers[PLAYER_DRACULA].currLocation;
-		//Dracula's location unknown
-		} else {
-			//in the sea
-			if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) == SEA) {
-				return SEA_UNKNOWN;
-			}
-			//on land (in city)
-			else if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) == LAND) {
-				return CITY_UNKNOWN;
-			}
-		}
+		return dracLocationDetail(gv, false);
 	}
 	return NOWHERE;
 }
@@ -548,9 +534,6 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 	}
 
 	// reset that player's current position to the first in the trail
-	/*char cityAbbrev[3] = {pastPlays[((new->roundNum-1) * ROUND_DIFF)+1], 
-			pastPlays[((new->roundNum-1) * ROUND_DIFF)+2], '\0'};
-		new->allPlayers[i].currLocation = placeAbbrevToId(cityAbbrev);*/
 	gv->allPlayers[player].currLocation = cityId; 
 } 
 
@@ -619,8 +602,8 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				gv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 			// check each action in the round
-			for (int i = 0; pastPlays[startOfRound+i] != '.'; i++) {
-				switch(startOfRound+i) {
+			for (int i = 3; pastPlays[startOfRound+i] != '.'; i++) {
+				switch(pastPlays[startOfRound+i]) {
 					case 'T': // encountered trap
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_TRAP_ENCOUNTER;
 						break;
@@ -628,6 +611,14 @@ void completePastPlays(GameView gv, char *pastPlays) {
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_DRACULA_ENCOUNTER;
 						gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_HUNTER_ENCOUNTER;
 						break;
+					case 'V': {// encountered vampire
+						char *tmpPastPlays = malloc(strlen(gv->pastPlays)*sizeof(char));
+						strcpy(tmpPastPlays, gv->pastPlays);
+						tmpPastPlays[startOfRound+i] = '.';
+						strcpy(gv->pastPlays, tmpPastPlays);
+						free(tmpPastPlays);
+						break;
+					}
 				}
 			}
 
@@ -638,9 +629,9 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				return;
 			}
 
-			// when the player didnt move and didnt just get sent to hospital
+			// when the player didnt move and didnt just got sent to hospital
 			if (gv->allPlayers[roundPlayer].prevMoves[0] == gv->allPlayers[roundPlayer].prevMoves[1]
-				&& gv->allPlayers[roundPlayer].health > 0)
+				&& gv->allPlayers[roundPlayer].health <= 0)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_REST;
 
 			// reduce hunters health to max if it is over
@@ -654,12 +645,10 @@ void completePastPlays(GameView gv, char *pastPlays) {
 						gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES;
 			}
 
-			// if drac just moved to the sea
-			if (gv->allPlayers[roundPlayer].currLocation == SEA_UNKNOWN ||
-				placeIsSea(gv->allPlayers[roundPlayer].currLocation))
-				gv->allPlayers[roundPlayer].health -= LIFE_LOSS_SEA;
+			// use draculas current location to test if he is at sea
+			dracLocationDetail(gv, true);
 
-			else if (gv->allPlayers[roundPlayer].currLocation == CASTLE_DRACULA)
+			if (gv->allPlayers[roundPlayer].currLocation == CASTLE_DRACULA)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
 	}
@@ -720,4 +709,96 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 		} 
 	}
 
+}
+
+// determine if dracula is current at sea, including
+// double moves
+PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
+	int doubleVal = 0, healthLoss = 0;
+	PlaceId currId;
+	// determine what the current location is
+	switch(gv->allPlayers[PLAYER_DRACULA].currLocation) {
+		case DOUBLE_BACK_1:
+			doubleVal = 1;
+			break;
+		case DOUBLE_BACK_2:
+			doubleVal = 2;
+			break;
+		case DOUBLE_BACK_3:
+			doubleVal = 3;
+			break;
+		case DOUBLE_BACK_4:
+			doubleVal = 4;
+			break;
+		case DOUBLE_BACK_5:
+			doubleVal = 5;
+			break;
+		case SEA_UNKNOWN:
+			healthLoss++;
+			currId = SEA_UNKNOWN;
+			break;
+		case CITY_UNKNOWN:
+			currId = CITY_UNKNOWN;
+			break;
+		case HIDE:
+			doubleVal = 1;
+			break;
+		default:
+			if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) ==
+				SEA) {
+				healthLoss++;
+			}
+			currId = gv->allPlayers[PLAYER_DRACULA].currLocation;
+			break;
+	}
+	
+	printf("%d\n", currId);
+	// check the locations of the double back/hide
+	while (doubleVal != 0) {
+		switch(gv->allPlayers[PLAYER_DRACULA].prevMoves[doubleVal]) {
+			case DOUBLE_BACK_1:
+				doubleVal = 1;
+				break;
+			case DOUBLE_BACK_2:
+				doubleVal = 2;
+				break;
+			case DOUBLE_BACK_3:
+				doubleVal = 3;
+				break;
+			case DOUBLE_BACK_4:
+				doubleVal = 4;
+				break;
+			case DOUBLE_BACK_5:
+				doubleVal = 5;
+				break;
+			case SEA_UNKNOWN:
+				healthLoss++;
+				doubleVal = 0;
+				currId = SEA_UNKNOWN;
+				break;
+			case CITY_UNKNOWN:
+				doubleVal = 0;
+				currId = CITY_UNKNOWN;
+				break;
+			case HIDE:
+				doubleVal = 1;
+				break;
+			default:
+				if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) ==
+					SEA) {
+					healthLoss++;
+				}
+				doubleVal = 0;
+				currId = gv->allPlayers[PLAYER_DRACULA].currLocation;
+				break;
+		}
+	}
+
+	// lose health when at sea
+	if (healthLoss > 0 && updateHealth) {
+		gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
+		printf("UPDATING HEALTH\n");
+	}
+		
+	return currId;
 }
