@@ -604,9 +604,15 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			// check each action in the round
 			for (int i = 3; pastPlays[startOfRound+i] != '.'; i++) {
 				switch(pastPlays[startOfRound+i]) {
-					case 'T': // encountered trap
+					case 'T': {// encountered trap
+						char *tmpPastPlays = malloc(strlen(gv->pastPlays)*sizeof(char));
+						strcpy(tmpPastPlays, gv->pastPlays);
+						tmpPastPlays[startOfRound+i] = '.';
+						strcpy(gv->pastPlays, tmpPastPlays);
+						free(tmpPastPlays);
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_TRAP_ENCOUNTER;
 						break;
+					}
 					case 'D': // endcountered dracula
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_DRACULA_ENCOUNTER;
 						gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_HUNTER_ENCOUNTER;
@@ -752,7 +758,6 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 			break;
 	}
 	
-	printf("%d\n", currId);
 	// check the locations of the double back/hide
 	while (doubleVal != 0) {
 		switch(gv->allPlayers[PLAYER_DRACULA].prevMoves[doubleVal]) {
@@ -795,10 +800,8 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 	}
 
 	// lose health when at sea
-	if (healthLoss > 0 && updateHealth) {
+	if (healthLoss > 0 && updateHealth) 
 		gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
-		printf("UPDATING HEALTH\n");
-	}
 		
 	return currId;
 }
