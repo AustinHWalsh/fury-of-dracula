@@ -193,6 +193,7 @@ PlaceId GvGetVampireLocation(GameView gv)
 		// go to correct roundNum line to search for V
 		for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
 			currStr = strtok(pastPlayCpy, "\n");
+			printf("%s\n", currStr);
 		}
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
@@ -211,6 +212,7 @@ PlaceId GvGetVampireLocation(GameView gv)
 			prevStr = currStr;
 			currStr = strtok(NULL, ". ");
 		}
+		printf("%s\n", vampLoc);
 		//vampire cannot exist in the sea
 		if (strcmp(vampLoc, "S?") == 0) 
 			return NOWHERE;
@@ -528,9 +530,11 @@ void completePlayerTrails(GameView gv, char *startId, Player player) {
 
 	for (int i = 0; i < MIN_TRAIL; i++) {
 		// first empty stop in trail
-		if (gv->allPlayers[player].prevMoves[i] == TBA_LOCATION) 
+		if (gv->allPlayers[player].prevMoves[i] == TBA_LOCATION) {
 			gv->allPlayers[player].prevMoves[i] = cityId;
-			
+			break;
+		}
+					
 	}
 
 	// reset that player's current position to the first in the trail
@@ -652,9 +656,9 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			}
 
 			// use draculas current location to test if he is at sea
-			dracLocationDetail(gv, true);
+			PlaceId lastPos = dracLocationDetail(gv, true);
 
-			if (gv->allPlayers[roundPlayer].currLocation == CASTLE_DRACULA)
+			if (lastPos == CASTLE_DRACULA)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
 	}
@@ -720,24 +724,31 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 // determine if dracula is current at sea, including
 // double moves
 PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
-	int doubleVal = 0, healthLoss = 0;
-	PlaceId currId;
+	int doubleVal = 0, healthLoss = 0, len;
+	PlaceId currId = gv->allPlayers[PLAYER_DRACULA].currLocation;
+	// find the len of the array upto currLocation
+	for (len = 1; len < MIN_TRAIL; len++) {
+		if (gv->allPlayers[PLAYER_DRACULA].prevMoves[len] == currId) {
+			break;
+		} 
+	}
+	
 	// determine what the current location is
-	switch(gv->allPlayers[PLAYER_DRACULA].currLocation) {
+	switch(currId) {
 		case DOUBLE_BACK_1:
-			doubleVal = 1;
+			doubleVal++;
 			break;
 		case DOUBLE_BACK_2:
-			doubleVal = 2;
+			doubleVal = doubleVal+2;
 			break;
 		case DOUBLE_BACK_3:
-			doubleVal = 3;
+			doubleVal = doubleVal+3;
 			break;
 		case DOUBLE_BACK_4:
-			doubleVal = 4;
+			doubleVal = doubleVal+4;
 			break;
 		case DOUBLE_BACK_5:
-			doubleVal = 5;
+			doubleVal = doubleVal+5;
 			break;
 		case SEA_UNKNOWN:
 			healthLoss++;
@@ -747,34 +758,32 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 			currId = CITY_UNKNOWN;
 			break;
 		case HIDE:
-			doubleVal = 1;
+			doubleVal++;
 			break;
 		default:
-			if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) ==
-				SEA) {
-				healthLoss++;
-			}
 			currId = gv->allPlayers[PLAYER_DRACULA].currLocation;
+			if (placeIdToType(currId) == SEA) 
+				healthLoss++;
 			break;
 	}
 	
 	// check the locations of the double back/hide
-	while (doubleVal != 0) {
-		switch(gv->allPlayers[PLAYER_DRACULA].prevMoves[doubleVal]) {
+	while (doubleVal != 0) {	
+		switch(gv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal]) {
 			case DOUBLE_BACK_1:
-				doubleVal = 1;
+				doubleVal++;
 				break;
 			case DOUBLE_BACK_2:
-				doubleVal = 2;
+				doubleVal = doubleVal+2;
 				break;
 			case DOUBLE_BACK_3:
-				doubleVal = 3;
+				doubleVal = doubleVal+3;
 				break;
 			case DOUBLE_BACK_4:
-				doubleVal = 4;
+				doubleVal = doubleVal+4;
 				break;
 			case DOUBLE_BACK_5:
-				doubleVal = 5;
+				doubleVal = doubleVal+5;
 				break;
 			case SEA_UNKNOWN:
 				healthLoss++;
@@ -786,15 +795,14 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 				currId = CITY_UNKNOWN;
 				break;
 			case HIDE:
-				doubleVal = 1;
+				doubleVal++;
 				break;
 			default:
-				if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) ==
-					SEA) {
+				currId = gv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal];
+				if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal]) == SEA) 
 					healthLoss++;
-				}
 				doubleVal = 0;
-				currId = gv->allPlayers[PLAYER_DRACULA].currLocation;
+				
 				break;
 		}
 	}
