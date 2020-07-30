@@ -197,9 +197,8 @@ PlaceId GvGetVampireLocation(GameView gv)
 		} else {
 		// go to correct roundNum line to search for V
 			currStr = strtok(pastPlayCpy, "\n");
-			for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
+			for (int i = 0; i < GvGetRound(gv) - r - 1; i++)
 				currStr = strtok(pastPlayCpy, "\n");
-			}
 		}
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
@@ -209,7 +208,6 @@ PlaceId GvGetVampireLocation(GameView gv)
 			if (strcmp(currStr, "V") == 0) {
 				vampLoc[0] = prevStr[1];
 		    	vampLoc[1] = prevStr[2];
-		    	
 		    	break;
 			}
 			prevStr = currStr;
