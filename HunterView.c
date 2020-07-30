@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Game.h"
 #include "GameView.h"
@@ -361,7 +362,7 @@ void completePastPlays(HunterView hv, char *pastPlays) {
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
 			// if they are in the hospital because of losing lifepoints
-			if (hvGetPlayerLocation(hv, roundPlayer) == ST_JOSEPH_AND_ST_MARY 
+			if (HvGetPlayerLocation(hv, roundPlayer) == ST_JOSEPH_AND_ST_MARY 
 				&& hv->allPlayers[roundPlayer].health <= 0)
 				hv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
