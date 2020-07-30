@@ -164,23 +164,24 @@ PlaceId DvGetVampireLocation(DraculaView dv)
 		char *pastPlayCpy = malloc(strlen(dv->pastPlays) * sizeof(char));
 		strcpy(pastPlayCpy, dv->pastPlays);
 		//find location of vamp in pastPlay
-		char *currStr = strtok(pastPlayCpy, "\n");
+		char *currStr;
+		//if immature vampire is in the first round
+		if (DvGetRound(dv) < 14) {
+		    currStr = strtok(pastPlayCpy, ". ");
+		} else {
 		// go to correct roundNum line to search for V
-		for (int i = 0; i < DvGetRound(dv) - r - 1; i++) {
 			currStr = strtok(pastPlayCpy, "\n");
+			for (int i = 0; i < DvGetRound(dv) - r - 1; i++)
+				currStr = strtok(pastPlayCpy, "\n");
 		}
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
-		//if no lines were skipped, read first playermove in the line
-		if (r == 0) {
-		    currStr = strtok(pastPlayCpy, ". ");
-		}
+		
 		//read Dracula location when V was spawned and assign it as vampire's location
 		while (currStr != NULL) {
 			if (strcmp(currStr, "V") == 0) {
 				vampLoc[0] = prevStr[1];
 		    	vampLoc[1] = prevStr[2];
-		    	
 		    	break;
 			}
 			prevStr = currStr;
@@ -225,19 +226,23 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 	PlaceId *validMoves = malloc(__ *sizeof(PlaceId));
 	int validMovesNum = 0;
 	
-	
 	//LOCATION move if there is an adjacent location by road or 
-    //boat drac has not been to in the last 5 prevmoves
+    //boat that drac has not been to in the last 5 prevmoves
     //not including ST_JOSEPH_AND_ST_MARY
     
     for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
         bool locationValid = true;
-        if (CONNECTIONS[i].v == dv->allPlayers[PLAYER_DRACULA].currLocation && CONNECTIONS[i].t != RAIL && CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY) {
-            for (int j = MIN_TRAIL - 4; j <= MIN_TRAIL; j++) {
-                if (dv->prevMoves[j] == CONNECTIONS[i].w)
+		//find each connected location that isn't by rail or the hospital
+        if (CONNECTIONS[i].v == dv->allPlayers[PLAYER_DRACULA].currLocation
+			&& CONNECTIONS[i].t != RAIL
+			&& CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY) {
+			for (int j = MIN_TRAIL - 4; j <= MIN_TRAIL; j++) {
+            //if connected location is in the last 5 moves, find next location
+				if (dv->prevMoves[j] == CONNECTIONS[i].w)
                     locationValid = false;
                     break;
             }
+			//add valid location to validMoves
             if (locationValid == true) {
                 validMoves[validMovesNum] = CONNECTIONS[i].w;
                 validMovesNum++;
@@ -258,21 +263,29 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
         int k = j + 1;
         while (k <= MIN_TRAIL) {
             if (dv->prevMoves[j] == dv->prevMoves[k]) {
-                if (k = j + 1)
-                    hide = false;
-                else
-                    //doubleBack = false;
+                if (k = j + 1) {
+				//dracula has stayed in the same location 2 times in a row
+					hide = false;
+					doubleBack = false;
+				} else
+                    doubleBack = false;
             }
             k++;
         }
         j++;
     }
     //Dracula can HIDE
-    if (hide == true)
+    if (hide == true) {
         validMoves[validMovesNum] = HIDE;
+		validMovesNum++;
+	}
     //Dracula can DOUBLE_BACK
     if (doubleBack == true) {
-    
+		//add DOUBLE_BACK 1 to 5
+		for (int i = 0, int j = DOUBLE_BACK_1; i < 5; i++, j++) {
+			validMoves[validMovesNum] = j;
+			validMovesNum++;
+		}
     }
     *numReturnedMoves = validMovesNum;
 	//No valid moves other than TELEPORT
@@ -285,22 +298,36 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
-	//Dracula hasn't made a move yet
-	if (dv->allPlayers[PLAYER_DRACULA].currLocation.name == NULL) {
+	int numMoves = -1;
+	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
+
+	//Dracula hasn't made a move yet or cannot make any move other than teleport
+	if (dv->allPlayers[PLAYER_DRACULA].currLocation.name == NULL || numMoves == 0) {
 	    *numReturnedLocs = 0;
 	    return NULL;
 	}
 	//Dracula has made a move
-	PlaceId *validLocations = malloc(__ *sizeof(PlaceId));
-	
-	//include currLocation if a hide hasnt been made in last 5 rds
+	PlaceId *validLocations = malloc(numMoves * sizeof(PlaceId));
 	
 	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
 	// not including locations that in the last 5 prevmoves
-	
-	
-	
+	for (int i = 0, int j = 0; i < numMoves; i++) {
+		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
+			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
+			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
+			//ignores all non-location moves
+			validLocations[j] = moves[i];
+			j++;
+		} else if (moves[i] == HIDE) { 
+			//include currLocation if a hide hasnt been made in last 5 rds
+			validLocations[j] = gv->allPlayers[PLAYER_DRACULA].currLocation;
+			j++;
+		} else
+			//stop looping to ignore doublebacks
+			break;
+	}
+	*numReturnedLocs = j;
+	return validLocations;
 }
 
 PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
