@@ -248,11 +248,9 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
  if they match, then add location to traplocations array and increment numTraps
  else continue 
  also, need to check after every dracula move to remove traps once the location is no longer in the trail
-
  loop through player moves for current round + 1 ()
  check if theyve set off a trap, if yes remove from list 
  if multiple traps, check player health to check if all traps are destoryed or not 
-
  */
  ///////////////////////////////////////////////////////////
     // TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
@@ -343,7 +341,8 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
 			(*numReturnedLocs)++;
 		} 
 		else if (gv->allPlayers[i].name == PLAYER_DRACULA) {
-			if (gv->allPlayers[PLAYER_DRACULA].currLocation != CITY_UNKNOWN && gv->allPlayers[PLAYER_DRACULA].currLocation != SEA_UNKNOWN) {
+			if (gv->allPlayers[PLAYER_DRACULA].currLocation != CITY_UNKNOWN 
+				&& gv->allPlayers[PLAYER_DRACULA].currLocation != SEA_UNKNOWN) {
 					LocationsHistory[*numReturnedLocs] = gv->allPlayers[PLAYER_DRACULA].currLocation;
 					(*numReturnedLocs)++;
 			}		
@@ -361,29 +360,19 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
 	}
 
 	return LocationsHistory;
-	//return *numReturnedLocs;
-	//*numReturnedLocs = 0;
 	*canFree = true;
-	//return NULL;
 }
 
 PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
                             int *numReturnedLocs, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
 	PlaceId *lastLocations = malloc(numLocs * (sizeof(PlaceId)));
 	*canFree = true;
 
-	/*int playerMaxMoves = 0;
-	//calculate the array length for the player's last move 
-	for (int i = 0; gv->playerInfo[player].currLocation[j] != NULL; i++)
-		playerMaxMoves++;
-	int j = playerMaxMoves;*/
-
 	int j = gv->roundNum - numLocs + 1;
 	//insert player location from (total moves - numLocs) to total moves
-	while (gv->allPlayers[player].prevMoves[j] != TBA_LOCATION && j <= MIN_TRAIL) {
+	while (gv->allPlayers[player].prevMoves[j] != TBA_LOCATION && 
+		j <= MIN_TRAIL) {
 		lastLocations[*numReturnedLocs] = gv->allPlayers[player].prevMoves[j];
 		(*numReturnedLocs)++;
 		j++;
@@ -456,7 +445,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	// array of reachable locations
 	PlaceId *reachableConn = malloc((MapNumPlaces(gv->m)) * sizeof(PlaceId));
 
-	// create an array of visited places, to ensure no doubleups in returned array
+	// create an array of visited places, ensure no doubleups in returned array
 	// used only when the hunter moves, because of the rail algorithm
 	int visitedLocations[NUM_REAL_PLACES] = {0};
 
@@ -469,7 +458,8 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 			// test the location can be added
 			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
 				// test bools to add to array
-				if (road && curr->type == ROAD && visitedLocations[curr->p] != 0)  
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
 					reachableConn[(*numReturnedLocs)++] = currentReach->p;
 				else if (boat && curr->type == BOAT) 
 					reachableConn[(*numReturnedLocs)++] = curr->p;
@@ -488,8 +478,8 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 			// determine which type of connection can be added
 
 			if (rail && curr->type == RAIL)
-				recurAddRail(gv, curr, reachableConn, railDistance, numReturnedLocs,
-					visitedLocations);
+				recurAddRail(gv, curr, reachableConn, railDistance, 
+					numReturnedLocs, visitedLocations);
 			else if (road && curr->type == ROAD) {
 				reachableConn[(*numReturnedLocs)++] = curr->p;
 				visitedLocations[curr->p]++;
@@ -603,7 +593,8 @@ void completePastPlays(GameView gv, char *pastPlays) {
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
 			// if they are in the hospital because of losing lifepoints
-			if (GvGetPlayerLocation(gv, roundPlayer) == ST_JOSEPH_AND_ST_MARY && gv->allPlayers[roundPlayer].health <= 0)
+			if (GvGetPlayerLocation(gv, roundPlayer) == ST_JOSEPH_AND_ST_MARY 
+				&& gv->allPlayers[roundPlayer].health <= 0)
 				gv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 			// check each action in the round
@@ -641,7 +632,8 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			}
 
 			// when the player didnt move and didnt just got sent to hospital
-			if (gv->allPlayers[roundPlayer].prevMoves[0] == gv->allPlayers[roundPlayer].prevMoves[1]
+			if (gv->allPlayers[roundPlayer].prevMoves[0] == 
+				gv->allPlayers[roundPlayer].prevMoves[1]
 				&& gv->allPlayers[roundPlayer].health <= 0)
 				gv->allPlayers[roundPlayer].health += LIFE_GAIN_REST;
 
@@ -693,8 +685,8 @@ char convertToPlayer(Player player) {
 
 // add all possible rail locations to the reacharray, only while the hunter
 // can move through another rail. 
-void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *railDistance,
-	int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
+void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
 
 	// base case when the hunter has run out of rail moves
 	if (*railDistance < 1)
@@ -711,10 +703,11 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, int *rai
 			
 			// get all the connections of the current vertice
 			ConnList curr = MapGetConnections(gv->m, reachList->p);
-			// loop through each one and recur the function if it is a rail connection
+			// loop through each one and recur if rail connection
 			while (curr != NULL) {
 				if (curr->type == RAIL)
-					recurAddRail(gv, reachList, reachArray, railDistance, numReturnedLocs, visitedLocs);
+					recurAddRail(gv, reachList, reachArray, railDistance, 
+						numReturnedLocs, visitedLocs);
 				curr = curr->next;
 			}
 		} 
@@ -800,7 +793,7 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 				break;
 			default:
 				currId = gv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal];
-				if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal]) == SEA) 
+				if (placeIdToType(currId) == SEA) 
 					healthLoss++;
 				doubleVal = 0;
 				
