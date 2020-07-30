@@ -185,22 +185,26 @@ PlaceId GvGetVampireLocation(GameView gv)
 	int r = (GvGetRound(gv) - 1) % 13;
 	//an immature vampire exists
 	if (0 <= r && r < 6) {
+		
 		//temp copy of pastPlays for strtok
 		char *pastPlayCpy = malloc(strlen(gv->pastPlays) * sizeof(char));
 		strcpy(pastPlayCpy, gv->pastPlays);
 		//find location of vamp in pastPlay
-		char *currStr = strtok(pastPlayCpy, "\n");
+		char *currStr;
+		//if immature vampire is in the first round
+		if (GvGetRound(gv) < 14) {
+		    currStr = strtok(pastPlayCpy, ". ");
+		} else {
 		// go to correct roundNum line to search for V
-		for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
+			printf("this is happening\n");
 			currStr = strtok(pastPlayCpy, "\n");
-			printf("%s\n", currStr);
+			for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
+				currStr = strtok(pastPlayCpy, "\n");
+			}
 		}
 		char *prevStr;
 		char vampLoc[LOCATION_ABBREVIATION_MAX];
-		//if no lines were skipped, read first playermove in the line
-		if (r == 0) {
-		    currStr = strtok(pastPlayCpy, ". ");
-		}
+		
 		//read Dracula location when V was spawned and assign it as vampire's location
 		while (currStr != NULL) {
 			if (strcmp(currStr, "V") == 0) {
@@ -211,8 +215,8 @@ PlaceId GvGetVampireLocation(GameView gv)
 			}
 			prevStr = currStr;
 			currStr = strtok(NULL, ". ");
+			
 		}
-		printf("%s\n", vampLoc);
 		//vampire cannot exist in the sea
 		if (strcmp(vampLoc, "S?") == 0) 
 			return NOWHERE;
@@ -224,7 +228,7 @@ PlaceId GvGetVampireLocation(GameView gv)
 		while (currStr != NULL) {
 			currStr = strtok(NULL, ". \n");
 			hunterLoc = &currStr[1];
-			if (currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
+			if (currStr != NULL && currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
 				//vampire has been vanquished
 				return NOWHERE;
 		}
