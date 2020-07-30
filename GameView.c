@@ -196,7 +196,6 @@ PlaceId GvGetVampireLocation(GameView gv)
 		    currStr = strtok(pastPlayCpy, ". ");
 		} else {
 		// go to correct roundNum line to search for V
-			printf("this is happening\n");
 			currStr = strtok(pastPlayCpy, "\n");
 			for (int i = 0; i < GvGetRound(gv) - r - 1; i++) {
 				currStr = strtok(pastPlayCpy, "\n");
