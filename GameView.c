@@ -257,20 +257,45 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
     // TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
+	PlaceId *FinalTrapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     
 
-    int n = gv->roundNum - TRAIL_SIZE;
+    int n = GvGetRound(gv) - TRAIL_SIZE + 1;
+	int m = GvGetRound(gv) - TRAIL_SIZE;
+    int r = GvGetRound(gv);
     if (n < 0) n = 0;
-    for (int i = n; i < gv->roundNum; i++) {
-        if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].prevMoves[i]) == LAND) {
+	if (m < 0) m = 0;
+	// drac hasnt made the rth move yet
+    for (int i = m; i < r; i++) {
+        // checking if the 
+        if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].prevMoves[i]) == LAND && ((i-1) % 13) != 0) {
             trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i];
-            (*numTraps)++;
         } 
-		
+		else trapLocations[*numTraps] = UNKNOWN_PLACE;
+		(*numTraps)++;
     } 
+	for (int i = n; i <= r; i++) {
+		for (int j = 0; j < 4; j++) {
+			// i = num of rounds, i-n = how many rounds have passed
+			int hunterHealth = 0; // replace 0 with prevHealth[i] 
+			for (int k = 0; k <= i - n; k++) {
+				if (trapLocations[k] == gv->allPlayers[j].prevMoves[i] && hunterHealth > 0) 
+					trapLocations[k] = UNKNOWN_PLACE;
+				
+			}
+		}
+	}
+	*numTraps = 0;
+	for (int i = 0; i < TRAIL_SIZE; i++) {
+		if (trapLocations[i] != UNKNOWN_PLACE) {
+			FinalTrapLocations[*numTraps] = trapLocations[i];
+			(*numTraps)++;
+		}
+	}
     
+	free(trapLocations);
     //*numTraps = 0;
-    return NULL;
+    return FinalTrapLocations;
 }
 ////////////////////////////////////////////////////////////////////////
 // Game History
