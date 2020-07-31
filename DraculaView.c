@@ -323,12 +323,17 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 
 
     //Dracula can HIDE
-    if (hide) 
-        validMoves[validMovesNum++] = HIDE;  
+    if (hide) {
+		validMoves[validMovesNum++] = HIDE; 
+	}
+         
 	//Dracula can DOUBLE_BACK
 	if (doubleBack) {
 		//add DOUBLE_BACK 1 
-		int locNum = validMovesNum;
+		int locNum = validMovesNum-1;
+		if (hide) {
+			locNum--;
+		}
 
 		for (int i = 0; i < locNum; i++)
 			validMoves[validMovesNum++] = DOUBLE_BACK_1+i;
@@ -479,49 +484,63 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
                                 bool road, bool rail, bool boat,
                                 int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
-	//player hasn't made a move yet
-	if (dv->allPlayers[player].currLocation == NOWHERE) {
-		numReturnedLocs = 0;
-		return NULL;
-	}
-	
-	PlaceId *canGo;
-	int canGoNum = 0;
+	// adjacency list of the connections leaving the currentLoc
+	PlaceId from = dv->allPlayers[player].currLocation;
+	ConnList currentReach = MapGetConnections(dv->m, from);
+	ConnList curr = currentReach;
 
-	//player is a hunter
-	if (player != PLAYER_DRACULA) {
-		//calculate number of adjacent locations
-		int connectionNum = 0;
-		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
-				connectionNum++;
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(dv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
+	*numReturnedLocs = 0;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
+	
+	// Dracula can only move to specific locations
+	if (player == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
 			}
+			curr = curr->next;
 		}
-		canGo = malloc(connectionNum * sizeof (PlaceId));
-		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
-				//int railDistance = (DvGetRound(dv) + player) % 4;
-				if (CONNECTIONS[i].t == RAIL && rail == true /*&& within rail distance*/) {
-					canGo[canGoNum] = CONNECTIONS[i].w;
-					canGoNum++;
-				} else {
-					if ((CONNECTIONS[i].t == ROAD && road == true)
-						|| (CONNECTIONS[i].t == BOAT && boat == true)) {
-						canGo[canGoNum] = CONNECTIONS[i].w;
-						canGoNum++;
-					}
+
+		// teleport if no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (HvGetRound(dv) + player) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRailDv(dv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
 				}
-			}
-		}
-		*numReturnedLocs = connectionNum;
-		return canGo;
+			}	
+			curr = curr->next;
+		}		
 	}
-	//player is Dracula
-	canGo = DvWhereCanIGoByType(dv, road, boat, &canGoNum);
-	*numReturnedLocs = canGoNum;
-	return canGo;
+
+	return reachableConn;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -798,4 +817,36 @@ void removeTrapFromDracDv(DraculaView dv, int HunterTrapPos) {
 		strcpy(dv->pastPlays, tmpPastPlays);
 		free(tmpPastPlays);
 	}
+}
+
+// add all possible rail locations to the reacharray, only while the hunter
+// can move through another rail. 
+void recurAddRailDv(DraculaView dv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
+	// base case when the hunter has run out of rail moves
+	
+	if (*railDistance < 1)
+		return;
+	else {
+		// when the passed location is not a previously added one
+		if (visitedLocs[reachList->p] == 0) {
+			// add the current vertice to the list
+			reachArray[(*numReturnedLocs)++] = reachList->p; 
+			// make sure it isnt visited again
+			visitedLocs[reachList->p]++;
+			// reduce the number of rail trips left by 1
+			(*railDistance)--;
+
+			// get all the connections of the current vertice
+			ConnList curr = MapGetConnections(dv->m, reachList->p);
+			// loop through each one and recur if rail connection
+			while (curr != NULL) {
+				if (curr->type == RAIL)
+					recurAddRailHv(dv, curr, reachArray, railDistance, 
+						numReturnedLocs, visitedLocs);
+				curr = curr->next;
+			}
+		} 
+	}
+
 }

@@ -397,66 +397,7 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-	bool road = true;
-	bool boat = true;
-	bool rail = true;
-	
-	// adjacency list of the connections leaving the from location
-	ConnList currentReach = MapGetConnections(gv->m, from);
-	ConnList curr = currentReach;
-
-	// array of reachable locations
-	PlaceId *reachableConn = malloc((MapNumPlaces(gv->m)) * sizeof(PlaceId));
-
-	// create an array of visited places, ensure no doubleups in returned array
-	// used only when the hunter moves, because of the rail algorithm
-	int visitedLocations[NUM_REAL_PLACES] = {0};
-	*numReturnedLocs = 0;
-	reachableConn[(*numReturnedLocs)++] = from;
-	visitedLocations[from]++;
-	
-	// Dracula can only move to specific locations
-	if (player == PLAYER_DRACULA) {
-		// iterate through the list
-		while (curr != NULL) {
-			// test the location can be added
-			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
-				// test bools to add to array
-				if (road && curr->type == ROAD && 
-					visitedLocations[curr->p] != 0)  
-					reachableConn[(*numReturnedLocs)++] = currentReach->p;
-				else if (boat && curr->type == BOAT) 
-					reachableConn[(*numReturnedLocs)++] = curr->p;
-			}
-			curr = curr->next;
-		}
-
-		// no moves possible
-		if (*numReturnedLocs == 0)
-			reachableConn[(*numReturnedLocs)] = NULL;
-
-	} else { // hunters move
-		while (curr != NULL) {
-			if (visitedLocations[curr->p] == 0) {
-				int railCount = (round + player) % 4;
-				int *railDistance = &railCount;
-				// determine which type of connection can be added
-				if (rail && curr->type == RAIL)
-					recurAddRail(gv, curr, reachableConn, railDistance, 
-						numReturnedLocs, visitedLocations);
-				else if (road && curr->type == ROAD) {
-					reachableConn[(*numReturnedLocs)++] = curr->p;
-					visitedLocations[curr->p]++;
-				} else if (boat && curr->type == BOAT) {
-					reachableConn[(*numReturnedLocs)++] = curr->p; 
-					visitedLocations[curr->p]++;
-				}
-			}	
-			curr = curr->next;
-		}		
-	}
-
-	return reachableConn;
+	return GvGetReachableByType(gv, player, round, from, true, true, true, numReturnedLocs);
 }
 
 PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
@@ -496,7 +437,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 
 		// no moves possible
 		if (*numReturnedLocs == 0)
-			reachableConn[(*numReturnedLocs)] = NULL;
+			reachableConn[(*numReturnedLocs)] = NOWHERE;
 
 	} else { // hunters move
 		while (curr != NULL) {

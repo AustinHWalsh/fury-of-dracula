@@ -298,10 +298,8 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 // Making a Move
 
 PlaceId *HvWhereCanIGo(HunterView hv, int *numReturnedLocs)
-{
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+{	
+	return HvWhereCanIGoByType(hv, true, true, true, numReturnedLocs);
 }
 
 PlaceId *HvWhereCanIGoByType(HunterView hv, bool road, bool rail,
