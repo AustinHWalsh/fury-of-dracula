@@ -236,9 +236,10 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 		}
 	}
 
-	// check a new location was found
+	// check a new location was found and updating
 	if (lastLoc != NOWHERE)
-		*round = i/7;
+		*round = *round + i/7;
+	
 	return lastLoc;
 }
 
@@ -265,7 +266,7 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 		}
     }
 
-	*pathLength = findPathLength(map, hv->allPlayers[hunter].currLocation, dest, path);
+	*pathLength = findPathLength(map, hv->allPlayers[hunter].currLocation, dest);
 
 	//shift one place to the left to remove source location
 	for (int i = 0; i <= *pathLength; i++)
@@ -278,7 +279,7 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 		int pathLen;
 		for (int i = 0; i < MAX_REAL_PLACE; i++) {
 			if (PLACES[i].type == LAND && placeIdToType(hv->allPlayers[hunter].currLocation) == LAND) {
-				pathLen = findPathLength(railGraph, hv->allPlayers[hunter].currLocation, PLACES[i].id, tmpPath);
+				pathLen = findPathLength(railGraph, hv->allPlayers[hunter].currLocation, PLACES[i].id);
 				if (pathLen > 1 && pathLen <= 3) {
 					for (int j = 1; j <= pathLen; j++) {
 						path[pathLen] = tmpPath[j];
@@ -299,80 +300,6 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 PlaceId *HvWhereCanIGo(HunterView hv, int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	/*
-	PlaceId *possibleLocations = malloc(NUM_REAL_PLACES *sizeof(PlaceId));
-
-	Player hunter = HvGetPlayer(hv);
-    //PlaceId from = HvGetPlayerLocation(hv, hunter);
-    //Round round = HvGetRound(hv);
-    int health = HvGetHealth(hv, hunter);
-	
-	// currLoc is hospital
-	if (health == 0) {
-		possibleLocations[*numReturnedLocs] = MapGetConnections(hv->m, from);
-		(*numReturnedLocs)++;
-		return possibleLocations;
-	}
-	*/
-
-	// adjacency list of the connections leaving the currentLoc
-	PlaceId from = hv->allPlayers[hv->currPlayer].currLocation;
-	ConnList currentReach = MapGetConnections(hv->m, from);
-	ConnList curr = currentReach;
-
-	// array of reachable locations
-	PlaceId *reachableConn = malloc((MapNumPlaces(hv->m)) * sizeof(PlaceId));
-
-	// create an array of visited places, ensure no doubleups in returned array
-	// used only when the hunter moves, because of the rail algorithm
-	int visitedLocations[NUM_REAL_PLACES] = {0};
-	*numReturnedLocs = 0;
-	reachableConn[(*numReturnedLocs)++] = from;
-	visitedLocations[from]++;
-	
-	// Dracula can only move to specific locations
-	if (hv->currPlayer == PLAYER_DRACULA) {
-		// iterate through the list
-		while (curr != NULL) {
-			// test the location can be added
-			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
-				// test bools to add to array
-				if ( curr->type == ROAD && 
-					visitedLocations[curr->p] != 0)  
-					reachableConn[(*numReturnedLocs)++] = currentReach->p;
-				else if ( curr->type == BOAT) 
-					reachableConn[(*numReturnedLocs)++] = curr->p;
-			}
-			curr = curr->next;
-		}
-
-		// teleport if no moves possible
-		if (*numReturnedLocs == 0)
-			reachableConn[(*numReturnedLocs)++] = TELEPORT;
-
-	} else { // hunters move
-		while (curr != NULL) {
-			if (visitedLocations[curr->p] == 0) {
-				int railCount = (HvGetRound(hv) + hv->currPlayer) % 4;
-				int *railDistance = &railCount;
-				// determine which type of connection can be added
-				if (curr->type == RAIL)
-					recurAddRailHv(hv, curr, reachableConn, railDistance, 
-						numReturnedLocs, visitedLocations);
-				else if (curr->type == ROAD) {
-					reachableConn[(*numReturnedLocs)++] = curr->p;
-					visitedLocations[curr->p]++;
-				} else if (curr->type == BOAT) {
-					reachableConn[(*numReturnedLocs)++] = curr->p; 
-					visitedLocations[curr->p]++;
-				}
-			}	
-			curr = curr->next;
-		}		
-	}
-
-	return reachableConn;
-
 	*numReturnedLocs = 0;
 	return NULL;
 }
@@ -597,11 +524,9 @@ void completePastPlaysHv(HunterView hv, char *pastPlays) {
 				hv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 		} else { // player is dracula
-			// check each action in the round
-			for (int i = 0; i < 4; i++) {
-				if (pastPlays[startOfRound+i] == 'V')
-						hv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES;
-			}
+			// check if vamp matured
+			if (pastPlays[startOfRound+5] == 'V')
+				hv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 
 			// use draculas current location to test if he is at sea
 			PlaceId lastPos = dracLocationDetailHv(hv, true);
