@@ -58,6 +58,8 @@ void completePastPlaysDv(DraculaView dv, char *pastPlays);
 void removeTrapFromDracDv(DraculaView dv, int HunterTrapPos);
 PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth);
 Graph makeRailGraph();
+void recurAddRailDv(DraculaView dv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
@@ -522,7 +524,7 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 	} else { // hunters move
 		while (curr != NULL) {
 			if (visitedLocations[curr->p] == 0) {
-				int railCount = (HvGetRound(dv) + player) % 4;
+				int railCount = (DvGetRound(dv) + player) % 4;
 				int *railDistance = &railCount;
 				// determine which type of connection can be added
 				if (rail && curr->type == RAIL)
@@ -842,7 +844,7 @@ void recurAddRailDv(DraculaView dv, ConnList reachList, PlaceId *reachArray,
 			// loop through each one and recur if rail connection
 			while (curr != NULL) {
 				if (curr->type == RAIL)
-					recurAddRailHv(dv, curr, reachArray, railDistance, 
+					recurAddRailDv(dv, curr, reachArray, railDistance, 
 						numReturnedLocs, visitedLocs);
 				curr = curr->next;
 			}
