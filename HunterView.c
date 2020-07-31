@@ -55,7 +55,8 @@ void completePlayerTrailsHv(HunterView hv, char *startId, Player player);
 void completePastPlaysHv(HunterView hv, char *pastPlays);
 PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth);
 void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray, 
-	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
+int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
+Graph makeRailGraph();
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
@@ -251,13 +252,18 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 	PlaceId *path = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
 
 	Graph map = newGraph(NUM_REAL_PLACES);
+	
+	int railDistance = (hunter + HvGetRound(hv)) % 4;
     for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
         insertEdge(map, CONNECTIONS[i].v, CONNECTIONS[i].w);
+		//if src and dest are connected by RAIL
 		if (CONNECTIONS[i].v == hv->allPlayers[hunter].currLocation
 			&& CONNECTIONS[i].w == dest && CONNECTIONS[i].t == RAIL) {
-				int railDistance = (hunter + HvGetRound(hv)) % 4;
-				//exclude if outside raildistance
-			}
+			//exclude if outside raildistance
+			if (railDistance == 0)
+				continue;
+			//if railDistance > 0, loop will add adjacent cities by rail 
+		}
     }
 
 	*pathLength = findPathLength(map, hv->allPlayers[hunter].currLocation, dest, path);
@@ -266,6 +272,25 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 	for (int i = 0; i <= *pathLength; i++)
 		path[i] = path[i + 1];
 
+	PlaceId *tmpPath = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
+
+	Graph railGraph = makeRailGraph();
+	if (railDistance > 1 && railDistance <= 3) {
+		int pathLen;
+		for (int i = 0; i < MAX_REAL_PLACE; i++) {
+			if (PLACES[i].type == LAND && placeIdToType(hv->allPlayers[hunter].currLocation) == LAND) {
+				pathLen = findPathLength(railGraph, hv->allPlayers[hunter].currLocation, PLACES[i].id, tmpPath);
+				if (pathLen > 1 && pathLen <= 3) {
+					for (int j = 1; j <= pathLen; j++) {
+						path[pathLen] = tmpPath[j];
+						pathLen++;
+					}
+				}
+			}
+		}
+	}
+	dropGraph(railGraph);
+	dropGraph(map);
 	return path;
 }
 
@@ -360,6 +385,15 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
+
+Graph makeRailGraph() {
+    Graph railGraph = newGraph(NUM_REAL_PLACES);
+    for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+        if (CONNECTIONS[i].t == RAIL)
+            insertEdge(railGraph, CONNECTIONS[i].v, CONNECTIONS[i].w);
+    }
+	return railGraph;
+}
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
