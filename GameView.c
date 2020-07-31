@@ -40,7 +40,7 @@ typedef struct playerInfo {
 } PlayerInfo;
 
 struct gameView {
-	Round roundNum;							// number of rounds that have passed
+	Round roundNum;							// number of total actions that have passed
 	int gameScore;							// current game score
 	char *pastPlays; 						// string of past plays 
 	Player currPlayer;						// the "name" of the current player
@@ -51,7 +51,7 @@ struct gameView {
 // declare your own functions here
 void completePlayerTrails(GameView gv, char *startId, Player player);
 void completePastPlays(GameView gv, char *pastPlays);
-
+void removeTrapFromDrac(GameView gv, int HunterTrapPos);
 int isReachableMember(PlaceId *reachable, PlaceId w);
 
 char convertToPlayer(Player player);
@@ -151,10 +151,6 @@ int GvGetHealth(GameView gv, Player player)
 
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
-	/*
-	for (int i = 0; i < NUM_PLAYERS; i++) {
-		if (gv->allPlayers[i].name == player) {
-	*/
 	//player is a hunter
 	if (player != PLAYER_DRACULA) {
 		//hunter is in hospital if zero health
@@ -171,15 +167,6 @@ PlaceId GvGetPlayerLocation(GameView gv, Player player)
 
 PlaceId GvGetVampireLocation(GameView gv)
 {
-
-	/* SOME CHANGES: EVERY PAST/CURR LOCATION IS NOW AN ID 
-	USE THE FUNCTIONS IN PLACES.H TO CONVERT THEM
-	ALSO, TO GET TO THE START OF DRACULA'S TURN IN PASTPLAYS
-	ID RECOMMEND YOU USE gv->pastPlays[4 * ROUND_DIFF] AND GO
-	FROM THERE
-	IF YOU WANT TO KNOW ANYTHING ELSE LET ME KNOW
-	-AUSTIN */
-
 	// Gets the location of the sleeping immature vampire.
 	
 	int r = (GvGetRound(gv) - 1) % 13;
@@ -239,37 +226,22 @@ PlaceId GvGetVampireLocation(GameView gv)
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
 
- ///////////////////// PSEUDO CODE /////////////////////////
- /*
- 
- initialise array for trap locations 
- go through all locations of the map and check if they are land
- compare these with locations in dracula's trail 
- if they match, then add location to traplocations array and increment numTraps
- else continue 
- also, need to check after every dracula move to remove traps once the location is no longer in the trail
- loop through player moves for current round + 1 ()
- check if theyve set off a trap, if yes remove from list 
- if multiple traps, check player health to check if all traps are destoryed or not 
- */
- ///////////////////////////////////////////////////////////
-    // TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
     *numTraps = 0;
-    
-
-    int n = gv->roundNum - TRAIL_SIZE;
-    if (n < 0) n = 0;
-    for (int i = n; i < gv->roundNum; i++) {
-        if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].prevMoves[i]) == LAND) {
-            trapLocations[*numTraps] = gv->allPlayers[PLAYER_DRACULA].prevMoves[i];
-            (*numTraps)++;
-        } 
+	// drac hasnt made the rth move yet
+    for (int i = 0; i < GvGetRound(gv); i++) {
+		// position of trap in pastPlay string
+		int checkTrap = 35 + (5 * ROUND_DIFF * i);
+		if (gv->pastPlays[checkTrap] != 'T')
+			continue;
 		
+		char cityAbbrev[3] = {gv->pastPlays[checkTrap-2], gv->pastPlays[checkTrap-1], '\0'};
+		PlaceId cityId = placeAbbrevToId(cityAbbrev);
+        // checking if the 
+		trapLocations[(*numTraps)++] = cityId;
     } 
-    
-    //*numTraps = 0;
-    return NULL;
+	    
+    return trapLocations;
 }
 ////////////////////////////////////////////////////////////////////////
 // Game History
@@ -277,8 +249,7 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 PlaceId *GvGetMoveHistory(GameView gv, Player player,
                           int *numReturnedMoves, bool *canFree)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
+		
 	PlaceId *MoveHistory = malloc(gv->roundNum * sizeof(PlaceId));
 	*numReturnedMoves = 0;
 	
@@ -325,9 +296,7 @@ PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
 PlaceId *GvGetLocationHistory(GameView gv, Player player,
                               int *numReturnedLocs, bool *canFree)
 {
-	
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
+		
 	PlaceId *LocationsHistory = malloc( gv->roundNum * (sizeof(PlaceId)));
 
 	//check if input is valid
@@ -386,8 +355,7 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
+		
 	//count max num of connections to from
 	int connectionNum = 0;
 	for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
@@ -601,11 +569,8 @@ void completePastPlays(GameView gv, char *pastPlays) {
 			for (int i = 3; pastPlays[startOfRound+i] != '.'; i++) {
 				switch(pastPlays[startOfRound+i]) {
 					case 'T': {// encountered trap
-						char *tmpPastPlays = malloc(strlen(gv->pastPlays)*sizeof(char));
-						strcpy(tmpPastPlays, gv->pastPlays);
-						tmpPastPlays[startOfRound+i] = '.';
-						strcpy(gv->pastPlays, tmpPastPlays);
-						free(tmpPastPlays);
+						if (gv->allPlayers[roundPlayer].health <= 0) break;
+						removeTrapFromDrac(gv, startOfRound+i);
 						gv->allPlayers[roundPlayer].health -= LIFE_LOSS_TRAP_ENCOUNTER;
 						break;
 					}
@@ -806,4 +771,34 @@ PlaceId dracLocationDetail(GameView gv, bool updateHealth) {
 		gv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
 		
 	return currId;
+}
+
+// when a hunter encounters a trap remove the trap from draculas trail
+// in the pastPlays string
+void removeTrapFromDrac(GameView gv, int HunterTrapPos) {
+	char cityAbbrev[3] = {gv->pastPlays[HunterTrapPos-2], gv->pastPlays[HunterTrapPos-1], '\0'};
+	// location which trap was found by hunter
+	PlaceId trapCity = placeAbbrevToId(cityAbbrev);
+
+	int i;
+	// find location in pastPlays string
+	for (i = 0; i < GvGetRound(gv); i++) {
+		// position of trap in pastPlay string
+		int checkTrap = 35 + (5 * ROUND_DIFF * i);
+		if (gv->pastPlays[checkTrap] != 'T') 
+			continue;
+
+		// check the location of the trap is the same as the one the hunter found
+		char dracCity[3] = {gv->pastPlays[checkTrap-2], gv->pastPlays[checkTrap-1], '\0'};
+		PlaceId dracLoc = placeAbbrevToId(dracCity);
+		if (dracLoc != trapCity)
+			continue;
+		
+		// remove 'T' from string
+		char *tmpPastPlays = malloc(strlen(gv->pastPlays)*sizeof(char));
+		strcpy(tmpPastPlays, gv->pastPlays);
+		tmpPastPlays[checkTrap] = '.';
+		strcpy(gv->pastPlays, tmpPastPlays);
+		free(tmpPastPlays);
+	}
 }
