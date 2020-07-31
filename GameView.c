@@ -397,50 +397,66 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
-		
-	//count max num of connections to from
-	int connectionNum = 0;
-	for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-		if (CONNECTIONS[i].v == from) {
-			connectionNum++;
+	bool road = true;
+	bool boat = true;
+	bool rail = true;
+	
+	// adjacency list of the connections leaving the from location
+	ConnList currentReach = MapGetConnections(gv->m, from);
+	ConnList curr = currentReach;
+
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(gv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
+	*numReturnedLocs = 0;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
+	
+	// Dracula can only move to specific locations
+	if (player == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+			}
+			curr = curr->next;
 		}
+
+		// no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)] = NULL;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (round + player) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRail(gv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
+			curr = curr->next;
+		}		
 	}
 
-	PlaceId *reachable = malloc(connectionNum*sizeof(PlaceId));
-	
-	//set all fields to UNKNOWN_PLACE
-    for (int i = 0; i <= connectionNum; i++) {
-	    reachable[i] = UNKNOWN_PLACE;
-    }
-	
-	//array includes the given location
-	reachable[0] = from;
-	int j = 1;
-	//player is a hunter
-	if (player != PLAYER_DRACULA) {
-		//int railDistance = (player + round) % 4;
-		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-			if (CONNECTIONS[i].v == from && isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
-				if (CONNECTIONS[i].t == RAIL /*&& not in range of railDistance*/) {
-					continue;
-				}
-				reachable[j] = CONNECTIONS[i].w;
-				j++;
-			}
-		}
-		*numReturnedLocs = j;
-		return reachable;
-	}
-	//player is Dracula
-	for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-		if (CONNECTIONS[i].v == from && CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY && CONNECTIONS[i].t != RAIL 
-			&& isReachableMember(reachable, CONNECTIONS[i].w) == NOT_MEMBER) {
-			reachable[j] = CONNECTIONS[i].w;
-			j++;
-		}
-	}
-	*numReturnedLocs = j;
-	return reachable;
+	return reachableConn;
 }
 
 PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
