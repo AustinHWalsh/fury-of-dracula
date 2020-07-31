@@ -206,7 +206,7 @@ PlaceId DvGetVampireLocation(DraculaView dv)
 		while (currStr != NULL) {
 			currStr = strtok(NULL, ". \n");
 			hunterLoc = &currStr[1];
-			if (currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
+			if (currStr != NULL && currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
 				//vampire has been vanquished
 				return NOWHERE;
 		}
@@ -220,8 +220,22 @@ PlaceId DvGetVampireLocation(DraculaView dv)
 PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numTraps = 0;
-	return NULL;
+	PlaceId *trapLocations = malloc(TRAIL_SIZE * (sizeof(PlaceId)));
+    *numTraps = 0;
+	// drac hasnt made the rth move yet
+    for (int i = 0; i < DvGetRound(dv); i++) {
+		// position of trap in pastPlay string
+		int checkTrap = 35 + (5 * ROUND_DIFF * i);
+		if (dv->pastPlays[checkTrap] != 'T')
+			continue;
+		
+		char cityAbbrev[3] = {dv->pastPlays[checkTrap-2], dv->pastPlays[checkTrap-1], '\0'};
+		PlaceId cityId = placeAbbrevToId(cityAbbrev);
+        // checking if the 
+		trapLocations[(*numTraps)++] = cityId;
+    } 
+	    
+    return trapLocations;
 }
 
 ////////////////////////////////////////////////////////////////////////
