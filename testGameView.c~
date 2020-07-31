@@ -132,12 +132,12 @@ int main(void)
 		
 		GameView gv = GvNew(trail, messages);
 		
-		/*assert(GvGetHealth(gv, PLAYER_LORD_GODALMING) ==
+		assert(GvGetHealth(gv, PLAYER_LORD_GODALMING) ==
 				GAME_START_HUNTER_LIFE_POINTS - LIFE_LOSS_DRACULA_ENCOUNTER);
 		assert(GvGetHealth(gv, PLAYER_DRACULA) ==
 				GAME_START_BLOOD_POINTS - LIFE_LOSS_HUNTER_ENCOUNTER);
 		assert(GvGetPlayerLocation(gv, PLAYER_LORD_GODALMING) == GENEVA);
-		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == GENEVA);*/
+		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == GENEVA);
 		assert(GvGetVampireLocation(gv) == NOWHERE);
 
 		GvFree(gv);
