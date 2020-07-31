@@ -257,8 +257,6 @@ PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 		}
 		trapLocations[(*numTraps)++] = cityId;
     } 
-	for (int i = 0; i < *numTraps; i++)
-		printf("%d\n", trapLocations[i]);
     return trapLocations;
 }
 
@@ -275,21 +273,22 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 	//LOCATION move if there is an adjacent location by road or 
     //boat that drac has not been to in the last 5 prevmoves
     //not including ST_JOSEPH_AND_ST_MARY
-    
+
     for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
         bool locationValid = true;
 		//find each connected location that isn't by rail or the hospital
         if (CONNECTIONS[i].v == dv->allPlayers[PLAYER_DRACULA].currLocation
 			&& CONNECTIONS[i].t != RAIL
 			&& CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY) {
-			for (int j = MIN_TRAIL - 4; j <= MIN_TRAIL; j++) {
+			for (int j = MIN_TRAIL- 4; j <= MIN_TRAIL; j++) {
             //if connected location is in the last 5 moves, find next location
-				if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == CONNECTIONS[i].w)
-                    locationValid = false;
+				if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == CONNECTIONS[i].w) {
+					locationValid = false;
                     break;
+				}  
             }
 			//add valid location to validMoves
-            if (locationValid == true) {
+            if (locationValid) {
                 validMoves[validMovesNum] = CONNECTIONS[i].w;
                 validMovesNum++;
             }
@@ -304,11 +303,12 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
     bool hide = true;
     bool doubleBack = true;
     
-    int j = MIN_TRAIL - 4;
+    int j = MIN_TRAIL-4;
     while (j <= MIN_TRAIL) {
         int k = j + 1;
         while (k <= MIN_TRAIL) {
-            if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == dv->allPlayers[PLAYER_DRACULA].prevMoves[k]) {
+            if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == dv->allPlayers[PLAYER_DRACULA].prevMoves[k]
+				&& dv->allPlayers[PLAYER_DRACULA].prevMoves[j] != TBA_LOCATION) {
                 if (k == j + 1) {
 				//dracula has stayed in the same location 2 times in a row
 					hide = false;
@@ -320,19 +320,20 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
         }
         j++;
     }
+
+
     //Dracula can HIDE
-    if (hide == true) {
-        validMoves[validMovesNum] = HIDE;
-		validMovesNum++;
+    if (hide) 
+        validMoves[validMovesNum++] = HIDE;  
+	//Dracula can DOUBLE_BACK
+	if (doubleBack) {
+		//add DOUBLE_BACK 1 
+		int locNum = validMovesNum;
+
+		for (int i = 0; i < locNum; i++)
+			validMoves[validMovesNum++] = DOUBLE_BACK_1+i;
 	}
-    //Dracula can DOUBLE_BACK
-    if (doubleBack == true) {
-		//add DOUBLE_BACK 1 to 5
-		for (int i = 0, j = DOUBLE_BACK_1; i < 5; i++, j++) {
-			validMoves[validMovesNum] = j;
-			validMovesNum++;
-		}
-    }
+
     *numReturnedMoves = validMovesNum;
 	//No valid moves other than TELEPORT
 	if (validMoves[0] == NOWHERE)
