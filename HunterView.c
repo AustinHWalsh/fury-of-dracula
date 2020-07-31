@@ -54,6 +54,8 @@ struct hunterView {
 void completePlayerTrailsHv(HunterView hv, char *startId, Player player);
 void completePastPlaysHv(HunterView hv, char *pastPlays);
 PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth);
+void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
@@ -280,9 +282,63 @@ PlaceId *HvWhereCanIGo(HunterView hv, int *numReturnedLocs)
 PlaceId *HvWhereCanIGoByType(HunterView hv, bool road, bool rail,
                              bool boat, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	// adjacency list of the connections leaving the currentLoc
+	PlaceId from = hv->allPlayers[hv->currPlayer].currLocation;
+	ConnList currentReach = MapGetConnections(hv->m, from);
+	ConnList curr = currentReach;
+
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(hv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
 	*numReturnedLocs = 0;
-	return NULL;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
+	
+	// Dracula can only move to specific locations
+	if (hv->currPlayer == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+			}
+			curr = curr->next;
+		}
+
+		// teleport if no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (HvGetRound(hv) + hv->currPlayer) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRail(hv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
+			curr = curr->next;
+		}		
+	}
+
+	return reachableConn;
 }
 
 PlaceId *HvWhereCanTheyGo(HunterView hv, Player player,
@@ -564,4 +620,36 @@ PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth) {
 		hv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
 		
 	return currId;
+}
+
+// add all possible rail locations to the reacharray, only while the hunter
+// can move through another rail. 
+void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
+	// base case when the hunter has run out of rail moves
+	
+	if (*railDistance < 1)
+		return;
+	else {
+		// when the passed location is not a previously added one
+		if (visitedLocs[reachList->p] == 0) {
+			// add the current vertice to the list
+			reachArray[(*numReturnedLocs)++] = reachList->p; 
+			// make sure it isnt visited again
+			visitedLocs[reachList->p]++;
+			// reduce the number of rail trips left by 1
+			(*railDistance)--;
+
+			// get all the connections of the current vertice
+			ConnList curr = MapGetConnections(hv->m, reachList->p);
+			// loop through each one and recur if rail connection
+			while (curr != NULL) {
+				if (curr->type == RAIL)
+					recurAddRail(hv, curr, reachArray, railDistance, 
+						numReturnedLocs, visitedLocs);
+				curr = curr->next;
+			}
+		} 
+	}
+
 }
