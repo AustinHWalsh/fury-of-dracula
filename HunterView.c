@@ -223,12 +223,10 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	
 	// find the last real location in the prevMoves
 	int i;
-	for (i = MIN_TRAIL; i > 0; i--) {
-		printf("%d\n", hv->allPlayers[PLAYER_DRACULA].prevMoves[i]);
+	for (i = 0; i < MIN_TRAIL; i++) {
 		if (hv->allPlayers[PLAYER_DRACULA].prevMoves[i] <= MAX_REAL_PLACE &&
 			hv->allPlayers[PLAYER_DRACULA].prevMoves[i] >= MIN_REAL_PLACE) {
 			lastLoc = hv->allPlayers[PLAYER_DRACULA].prevMoves[i];
-			break;
 		}
 	}
 
@@ -290,14 +288,13 @@ void completePlayerTrailsHv(HunterView hv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
-	printf("%s\n", cityAbbrev);
+
 	for (int i = 0; i < MIN_TRAIL; i++) {
 		// first empty stop in trail
 		if (hv->allPlayers[player].prevMoves[i] == TBA_LOCATION) {
 			hv->allPlayers[player].prevMoves[i] = cityId;
 			break;
-		}
-					
+		}		
 	}
 
 	// reset that player's current position to the first in the trail
