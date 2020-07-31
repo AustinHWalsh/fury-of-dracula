@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string.h>
+
 #include "DraculaView.h"
 #include "Game.h"
 #include "GameView.h"
@@ -51,9 +53,10 @@ struct draculaView {
 };
 
 // declare your own functions here
-void completePlayerTrails(GameView dv, char *startId, Player player);
-void completePastPlays(GameView dv, char *pastPlays);
+void completePlayerTrails(DraculaView dv, char *startId, Player player);
+void completePastPlays(DraculaView dv, char *pastPlays);
 Graph makeRailGraph();
+PlaceId dracLocationDetail(DraculaView dv, bool updateHealth);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -150,7 +153,7 @@ PlaceId DvGetPlayerLocation(DraculaView dv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	//player has not had a turn
-	if (dv->allPersons[player].currLocation.name == NULL)
+	if (dv->allPlayers[player].currLocation == NOWHERE)
 	    return NOWHERE;
 	    
     //player has a current location
@@ -225,10 +228,10 @@ PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	
-	PlaceId *validMoves = malloc(__ *sizeof(PlaceId));
+	//put NUM_REAL_PLACES for now
+	PlaceId *validMoves = malloc(NUM_REAL_PLACES *sizeof(PlaceId));
 	int validMovesNum = 0;
-	
+	validMoves[validMovesNum] = NOWHERE;
 	//LOCATION move if there is an adjacent location by road or 
     //boat that drac has not been to in the last 5 prevmoves
     //not including ST_JOSEPH_AND_ST_MARY
@@ -241,7 +244,7 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 			&& CONNECTIONS[i].w != ST_JOSEPH_AND_ST_MARY) {
 			for (int j = MIN_TRAIL - 4; j <= MIN_TRAIL; j++) {
             //if connected location is in the last 5 moves, find next location
-				if (dv->prevMoves[j] == CONNECTIONS[i].w)
+				if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == CONNECTIONS[i].w)
                     locationValid = false;
                     break;
             }
@@ -265,8 +268,8 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
     while (j <= MIN_TRAIL) {
         int k = j + 1;
         while (k <= MIN_TRAIL) {
-            if (dv->prevMoves[j] == dv->prevMoves[k]) {
-                if (k = j + 1) {
+            if (dv->allPlayers[PLAYER_DRACULA].prevMoves[j] == dv->allPlayers[PLAYER_DRACULA].prevMoves[k]) {
+                if (k == j + 1) {
 				//dracula has stayed in the same location 2 times in a row
 					hide = false;
 					doubleBack = false;
@@ -285,14 +288,14 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
     //Dracula can DOUBLE_BACK
     if (doubleBack == true) {
 		//add DOUBLE_BACK 1 to 5
-		for (int i = 0, int j = DOUBLE_BACK_1; i < 5; i++, j++) {
+		for (int i = 0, j = DOUBLE_BACK_1; i < 5; i++, j++) {
 			validMoves[validMovesNum] = j;
 			validMovesNum++;
 		}
     }
     *numReturnedMoves = validMovesNum;
 	//No valid moves other than TELEPORT
-	if (validMoves[0].name == NULL)
+	if (validMoves[0] == NOWHERE)
 	    return NULL;
 	//Dracula can make a move
 	return validMoves;
@@ -305,7 +308,7 @@ PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
 
 	//Dracula hasn't made a move yet or cannot make any move other than teleport
-	if (dv->allPlayers[PLAYER_DRACULA].currLocation.name == NULL || numMoves == 0) {
+	if (dv->allPlayers[PLAYER_DRACULA].currLocation == NOWHERE || numMoves == 0) {
 	    *numReturnedLocs = 0;
 	    return NULL;
 	}
@@ -314,7 +317,8 @@ PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 	
 	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
 	// not including locations that in the last 5 prevmoves
-	for (int i = 0, int j = 0; i < numMoves; i++) {
+	int j = 0;
+	for (int i = 0; i < numMoves; i++) {
 		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
 			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
 			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
@@ -341,7 +345,7 @@ PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
 	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
 
 	//Dracula hasn't made a move yet or cannot make any move other than teleport
-	if (dv->allPlayers[PLAYER_DRACULA].currLocation.name == NULL || numMoves == 0) {
+	if (dv->allPlayers[PLAYER_DRACULA].currLocation == NOWHERE || numMoves == 0) {
 	    *numReturnedLocs = 0;
 	    return NULL;
 	}
@@ -350,15 +354,18 @@ PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
 	
 	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
 	// not including locations that in the last 5 prevmoves
-	for (int i = 0, int j = 0; i < numMoves; i++) {
+	int j = 0;
+	for (int i = 0; i < numMoves; i++) {
 		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
 			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
 			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
 			//ignores all non-location moves
-			for (int k = 0; CONNECTIONS[k] != UNKNOWN_PLACE; k++) {
+			int k = 0;
+			while (CONNECTIONS[k].v != UNKNOWN_PLACE) {
 				if (CONNECTIONS[k].v == dv->allPlayers[PLAYER_DRACULA].currLocation
 					&& CONNECTIONS[k].w == validLocations[j])
 					break;
+				k++;
 			}
 			if (road == true && CONNECTIONS[k].t == ROAD) {
 				//road connections are unrestricted
@@ -388,7 +395,7 @@ PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 
 	//player hasn't made a move yet
-	if (dv->allPlayers[player].currLocation.name == NULL) {
+	if (dv->allPlayers[player].currLocation == NOWHERE) {
 		numReturnedLocs = 0;
 		return NULL;
 	}
@@ -398,7 +405,6 @@ PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
 
 	//player is a hunter
 	if (player != PLAYER_DRACULA) {
-		canGo = malloc(connectionNum * sizeof (PlaceId));
 		//calculate number of adjacent locations
 		int connectionNum = 0;
 		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
@@ -406,6 +412,7 @@ PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
 				connectionNum++;
 			}
 		}
+		canGo = malloc(connectionNum * sizeof (PlaceId));
 		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
 			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
 				//int railDistance = (DvGetRound(dv) + player) % 4;
@@ -434,7 +441,7 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	
 	//player hasn't made a move yet
-	if (dv->allPlayers[player].currLocation.name == NULL) {
+	if (dv->allPlayers[player].currLocation == NOWHERE) {
 		numReturnedLocs = 0;
 		return NULL;
 	}
@@ -444,7 +451,6 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 
 	//player is a hunter
 	if (player != PLAYER_DRACULA) {
-		canGo = malloc(connectionNum * sizeof (PlaceId));
 		//calculate number of adjacent locations
 		int connectionNum = 0;
 		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
@@ -452,6 +458,7 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 				connectionNum++;
 			}
 		}
+		canGo = malloc(connectionNum * sizeof (PlaceId));
 		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
 			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
 				//int railDistance = (DvGetRound(dv) + player) % 4;
@@ -487,11 +494,12 @@ Graph makeRailGraph() {
         if (CONNECTIONS[i].t == RAIL)
             insertEdge(railGraph, CONNECTIONS[i].v, CONNECTIONS[i].w);
     }
+	return railGraph;
 }
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
-void completePlayerTrails(GameView dv, char *startId, Player player) {
+void completePlayerTrails(DraculaView dv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
@@ -510,7 +518,7 @@ void completePlayerTrails(GameView dv, char *startId, Player player) {
 // clean up and complete the remaining required dv elements,
 // such as current score and player health
 // dependencies on the pastPlays string
-void completePastPlays(GameView dv, char *pastPlays) {
+void completePastPlays(DraculaView dv, char *pastPlays) {
 	
 	// when its the first round
 	if (dv->roundNum == 0) {
@@ -623,4 +631,97 @@ void completePastPlays(GameView dv, char *pastPlays) {
 		}
 	}
 	
+}
+
+// determine if dracula is current at sea, including
+// double moves
+PlaceId dracLocationDetail(DraculaView dv, bool updateHealth) {
+	int doubleVal = 0, healthLoss = 0, len;
+	PlaceId currId = dv->allPlayers[PLAYER_DRACULA].currLocation;
+	// find the len of the array upto currLocation
+	for (len = 1; len < MIN_TRAIL; len++) {
+		if (dv->allPlayers[PLAYER_DRACULA].prevMoves[len] == currId) {
+			break;
+		} 
+	}
+	
+	// determine what the current location is
+	switch(currId) {
+		case DOUBLE_BACK_1:
+			doubleVal++;
+			break;
+		case DOUBLE_BACK_2:
+			doubleVal = doubleVal+2;
+			break;
+		case DOUBLE_BACK_3:
+			doubleVal = doubleVal+3;
+			break;
+		case DOUBLE_BACK_4:
+			doubleVal = doubleVal+4;
+			break;
+		case DOUBLE_BACK_5:
+			doubleVal = doubleVal+5;
+			break;
+		case SEA_UNKNOWN:
+			healthLoss++;
+			currId = SEA_UNKNOWN;
+			break;
+		case CITY_UNKNOWN:
+			currId = CITY_UNKNOWN;
+			break;
+		case HIDE:
+			doubleVal++;
+			break;
+		default:
+			currId = dv->allPlayers[PLAYER_DRACULA].currLocation;
+			if (placeIdToType(currId) == SEA) 
+				healthLoss++;
+			break;
+	}
+	
+	// check the locations of the double back/hide
+	while (doubleVal != 0) {	
+		switch(dv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal]) {
+			case DOUBLE_BACK_1:
+				doubleVal++;
+				break;
+			case DOUBLE_BACK_2:
+				doubleVal = doubleVal+2;
+				break;
+			case DOUBLE_BACK_3:
+				doubleVal = doubleVal+3;
+				break;
+			case DOUBLE_BACK_4:
+				doubleVal = doubleVal+4;
+				break;
+			case DOUBLE_BACK_5:
+				doubleVal = doubleVal+5;
+				break;
+			case SEA_UNKNOWN:
+				healthLoss++;
+				doubleVal = 0;
+				currId = SEA_UNKNOWN;
+				break;
+			case CITY_UNKNOWN:
+				doubleVal = 0;
+				currId = CITY_UNKNOWN;
+				break;
+			case HIDE:
+				doubleVal++;
+				break;
+			default:
+				currId = dv->allPlayers[PLAYER_DRACULA].prevMoves[len-doubleVal];
+				if (placeIdToType(currId) == SEA) 
+					healthLoss++;
+				doubleVal = 0;
+				
+				break;
+		}
+	}
+
+	// lose health when at sea
+	if (healthLoss > 0 && updateHealth) 
+		dv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
+		
+	return currId;
 }
