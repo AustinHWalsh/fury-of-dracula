@@ -124,16 +124,16 @@ int findPathLength (Graph g, Vertex src, Vertex dest)
 	while (found == 0 && !(QueueIsEmpty (q))) {
 		// src and dest are the same city
 		if (src == dest) {
-			visited[0] = src;
-			path[0] = src;
-			return 1;
+			//visited[0] = src;
+			//path[0] = src;
+			return 0;
 		}
 		Vertex v = QueueLeave(q);
 		if (v == dest) {
 			found = 1;
 		} else {
 			for (int i = 0; i < g->nV; i++) {
-				if (g->edges[v][i] && visited[i] == -1 && g->edges[v][i] <= max) {
+				if (g->edges[v][i] && visited[i] == -1/* && g->edges[v][i] <= max*/) {
 					visited[i] = v;
 					QueueJoin(q, i);
 				}
@@ -158,7 +158,7 @@ int findPathLength (Graph g, Vertex src, Vertex dest)
 		}
 		path[VNum] = dest;
 		path[0] = src;*/
-		//#vertices in path is VNum - 1
+		//#vertices in path is VNum + 1
 		//return path length (#edges traversed)
 		return VNum - 1;
 	}
