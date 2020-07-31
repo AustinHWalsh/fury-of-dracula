@@ -90,6 +90,9 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 		// set name
 		new->allPlayers[i].name = PLAYER_LORD_GODALMING + i;
         
+		//set all currLocation to NOWHERE
+		new->allPlayers[i].currLocation = NOWHERE;
+
 		// create space for previous trails and fill them with 
 		new->allPlayers[i].prevMoves = malloc((new->roundNum+7) * sizeof(Place));
 		if (new->allPlayers[i].prevMoves == NULL) {
@@ -498,7 +501,7 @@ Graph makeRailGraph() {
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
-void completePlayerTrailsDvDv(DraculaView dv, char *startId, Player player) {
+void completePlayerTrailsDv(DraculaView dv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
