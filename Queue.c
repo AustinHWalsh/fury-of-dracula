@@ -1,11 +1,12 @@
 // Queue.c ... implementation of Queue ADT
 // Written by John Shepherd, March 2013
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
-#include "Item.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "Queue.h"
+#include "Item.h"
 
 typedef struct QueueNode {
 	Item value;
@@ -13,61 +14,51 @@ typedef struct QueueNode {
 } QueueNode;
 
 typedef struct QueueRep {
-	QueueNode *head;  // ptr to first node
-	QueueNode *tail;  // ptr to last node
+	QueueNode *head; // ptr to first node
+	QueueNode *tail; // ptr to last node
 } QueueRep;
 
 // create new empty Queue
-Queue newQueue()
+Queue newQueue (void)
 {
-	Queue q;
-	q = malloc(sizeof(QueueRep));
-	assert(q != NULL);
-	q->head = NULL;
-	q->tail = NULL;
-	return q;
+	QueueRep *new = malloc (sizeof *new);
+	*new = (QueueRep){ .head = NULL, .tail = NULL };
+	return new;
 }
 
 // free memory used by Queue
-void dropQueue(Queue Q)
+void dropQueue (Queue Q)
 {
-	QueueNode *curr, *next;
-	assert(Q != NULL);
-	// free list nodes
-	curr = Q->head;
-	while (curr != NULL) {
+	assert (Q != NULL);
+	for (QueueNode *curr = Q->head, *next; curr != NULL; curr = next) {
 		next = curr->next;
-		free(curr);
-		curr = next;
+		free (curr);
 	}
-	// free queue rep
-	free(Q);
+	free (Q);
 }
 
 // display as 3 > 5 > 4 > ...
-void showQueue(Queue Q)
+void showQueue (Queue Q)
 {
-	QueueNode *curr;
-	assert(Q != NULL);
-	// free list nodes
-	curr = Q->head;
-	while (curr != NULL) {
-		ItemShow(curr->value);
+	assert (Q != NULL);
+
+	for (QueueNode *curr = Q->head; curr != NULL; curr = curr->next) {
+		ItemShow (curr->value);
 		if (curr->next != NULL)
-			printf(">");
-		curr = curr->next;
+			printf (">");
 	}
-	printf("\n");
+	printf ("\n");
 }
 
-// add item at end of Queue 
-void QueueJoin(Queue Q, Item it)
+// add item at end of Queue
+void QueueJoin (Queue Q, Item it)
 {
-	assert(Q != NULL);
-	QueueNode *new = malloc(sizeof(QueueNode));
-	assert(new != NULL);
-	new->value = ItemCopy(it);
-	new->next = NULL;
+	assert (Q != NULL);
+
+	QueueNode *new = malloc (sizeof *new);
+	assert (new != NULL);
+	*new = (QueueNode){ .value = ItemCopy (it), .next = NULL };
+
 	if (Q->head == NULL)
 		Q->head = new;
 	if (Q->tail != NULL)
@@ -76,22 +67,21 @@ void QueueJoin(Queue Q, Item it)
 }
 
 // remove item from front of Queue
-Item QueueLeave(Queue Q)
+Item QueueLeave (Queue Q)
 {
-	assert(Q != NULL);
-	assert(Q->head != NULL);
-	Item it = ItemCopy(Q->head->value);
+	assert (Q != NULL);
+	assert (Q->head != NULL);
+	Item it = ItemCopy (Q->head->value);
 	QueueNode *old = Q->head;
 	Q->head = old->next;
 	if (Q->head == NULL)
 		Q->tail = NULL;
-	free(old);
+	free (old);
 	return it;
 }
 
 // check for no items
-int QueueIsEmpty(Queue Q)
+int QueueIsEmpty (Queue Q)
 {
 	return (Q->head == NULL);
 }
-

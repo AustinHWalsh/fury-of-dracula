@@ -18,6 +18,7 @@
 #include "Game.h"
 #include "GameView.h"
 #include "Map.h"
+#include "Graph.h"
 
 // add your own #includes here
 #define NOT_MEMBER 0
@@ -51,6 +52,7 @@ struct draculaView {
 // declare your own functions here
 void completePlayerTrails(GameView dv, char *startId, Player player);
 void completePastPlays(GameView dv, char *pastPlays);
+int railPathLength(Graph g, Vertex src, Vertex dest, PlaceId *path);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
