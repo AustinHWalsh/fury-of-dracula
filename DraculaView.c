@@ -344,90 +344,128 @@ PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 
 PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	int numMoves = -1;
-	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
+	bool road = true;
+	bool rail = true;
+	bool boat = true;
+	// adjacency list of the connections leaving the currentLoc
+	PlaceId from = hv->allPlayers[hv->currPlayer].currLocation;
+	ConnList currentReach = MapGetConnections(hv->m, from);
+	ConnList curr = currentReach;
 
-	//Dracula hasn't made a move yet or cannot make any move other than teleport
-	if (dv->allPlayers[PLAYER_DRACULA].currLocation == NOWHERE || numMoves == 0) {
-	    *numReturnedLocs = 0;
-	    return NULL;
-	}
-	//Dracula has made a move
-	PlaceId *validLocations = malloc(numMoves * sizeof(PlaceId));
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(hv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
+	*numReturnedLocs = 0;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
 	
-	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
-	// not including locations that in the last 5 prevmoves
-	int j = 0;
-	for (int i = 0; i < numMoves; i++) {
-		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
-			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
-			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
-			//ignores all non-location moves
-			validLocations[j] = moves[i];
-			j++;
-		} else if (moves[i] == HIDE) { 
-			//include currLocation if a hide hasnt been made in last 5 rds
-			validLocations[j] = dv->allPlayers[PLAYER_DRACULA].currLocation;
-			j++;
-		} else
-			//stop looping to ignore doublebacks
-			break;
+	// Dracula can only move to specific locations
+	if (hv->currPlayer == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+			}
+			curr = curr->next;
+		}
+
+		// teleport if no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (HvGetRound(hv) + hv->currPlayer) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRailHv(hv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
+			curr = curr->next;
+		}		
 	}
-	*numReturnedLocs = j;
-	return validLocations;
+
+	return reachableConn;
 }
 
 PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
                              int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	int numMoves = -1;
-	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
+	// adjacency list of the connections leaving the currentLoc
+	PlaceId from = hv->allPlayers[hv->currPlayer].currLocation;
+	ConnList currentReach = MapGetConnections(hv->m, from);
+	ConnList curr = currentReach;
 
-	//Dracula hasn't made a move yet or cannot make any move other than teleport
-	if (dv->allPlayers[PLAYER_DRACULA].currLocation == NOWHERE || numMoves == 0) {
-	    *numReturnedLocs = 0;
-	    return NULL;
-	}
-	//Dracula has made a move
-	PlaceId *validLocations = malloc(numMoves * sizeof(PlaceId));
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(hv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
+	*numReturnedLocs = 0;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
 	
-	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
-	// not including locations that in the last 5 prevmoves
-	int j = 0;
-	for (int i = 0; i < numMoves; i++) {
-		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
-			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
-			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
-			//ignores all non-location moves
-			int k = 0;
-			while (CONNECTIONS[k].v != UNKNOWN_PLACE) {
-				if (CONNECTIONS[k].v == dv->allPlayers[PLAYER_DRACULA].currLocation
-					&& CONNECTIONS[k].w == validLocations[j])
-					break;
-				k++;
+	// Dracula can only move to specific locations
+	if (hv->currPlayer == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
 			}
-			if (road == true && CONNECTIONS[k].t == ROAD) {
-				//road connections are unrestricted
-				validLocations[j] = moves[i];
-				j++;
-			}
-			if (boat == true && CONNECTIONS[k].t == BOAT) {
-				//boat connections are unrestricted
-				validLocations[j] = moves[i];
-				j++;
-			}
-		} else if (moves[i] == HIDE) { 
-			//include currLocation if a hide hasnt been made in last 5 rds
-			validLocations[j] = dv->allPlayers[PLAYER_DRACULA].currLocation;
-			j++;
-		} else
-			//stop looping to ignore doublebacks
-			break;
+			curr = curr->next;
+		}
+
+		// teleport if no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (HvGetRound(hv) + hv->currPlayer) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRailHv(hv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
+			curr = curr->next;
+		}		
 	}
-	*numReturnedLocs = j;
-	return validLocations;
+
+	return reachableConn;
 }
 
 PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
