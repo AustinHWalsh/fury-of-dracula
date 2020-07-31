@@ -436,7 +436,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	int visitedLocations[NUM_REAL_PLACES] = {0};
 	*numReturnedLocs = 0;
 	reachableConn[(*numReturnedLocs)++] = from;
-	int railCount = (round + player) % 4;
+	visitedLocations[from]++;
 	
 	// Dracula can only move to specific locations
 	if (player == PLAYER_DRACULA) {
@@ -461,6 +461,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	} else { // hunters move
 		while (curr != NULL) {
 			if (visitedLocations[curr->p] == 0) {
+				int railCount = (round + player) % 4;
 				int *railDistance = &railCount;
 				// determine which type of connection can be added
 				if (rail && curr->type == RAIL)
@@ -665,8 +666,8 @@ char convertToPlayer(Player player) {
 // can move through another rail. 
 void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, 
 	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
-	printf("%d\n", *railDistance);
 	// base case when the hunter has run out of rail moves
+	
 	if (*railDistance < 1)
 		return;
 	else {
@@ -678,13 +679,13 @@ void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray,
 			visitedLocs[reachList->p]++;
 			// reduce the number of rail trips left by 1
 			(*railDistance)--;
-			
+
 			// get all the connections of the current vertice
 			ConnList curr = MapGetConnections(gv->m, reachList->p);
 			// loop through each one and recur if rail connection
 			while (curr != NULL) {
 				if (curr->type == RAIL)
-					recurAddRail(gv, reachList, reachArray, railDistance, 
+					recurAddRail(gv, curr, reachArray, railDistance, 
 						numReturnedLocs, visitedLocs);
 				curr = curr->next;
 			}
