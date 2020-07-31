@@ -260,10 +260,10 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 			}
     }
 
-	*pathLength = (map, hv->allPlayers[hunter].currLocation, dest, path);
+	*pathLength = findPathLength(map, hv->allPlayers[hunter].currLocation, dest, path);
 
 	//shift one place to the left to remove source location
-	for (int i = 0; i <= pathLength; i++)
+	for (int i = 0; i <= *pathLength; i++)
 		path[i] = path[i + 1];
 
 	return path;
@@ -324,7 +324,7 @@ PlaceId *HvWhereCanIGoByType(HunterView hv, bool road, bool rail,
 				int *railDistance = &railCount;
 				// determine which type of connection can be added
 				if (rail && curr->type == RAIL)
-					recurAddRail(hv, curr, reachableConn, railDistance, 
+					recurAddRailHv(hv, curr, reachableConn, railDistance, 
 						numReturnedLocs, visitedLocations);
 				else if (road && curr->type == ROAD) {
 					reachableConn[(*numReturnedLocs)++] = curr->p;
@@ -645,7 +645,7 @@ void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray,
 			// loop through each one and recur if rail connection
 			while (curr != NULL) {
 				if (curr->type == RAIL)
-					recurAddRail(hv, curr, reachArray, railDistance, 
+					recurAddRailHv(hv, curr, reachArray, railDistance, 
 						numReturnedLocs, visitedLocs);
 				curr = curr->next;
 			}
