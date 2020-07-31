@@ -55,23 +55,22 @@ struct draculaView {
 // declare your own functions here
 void completePlayerTrailsDv(DraculaView dv, char *startId, Player player);
 void completePastPlaysDv(DraculaView dv, char *pastPlays);
-Graph makeRailGraph();
+void removeTrapFromDracDv(DraculaView dv, int HunterTrapPos);
 PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth);
-
+Graph makeRailGraph();
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
 DraculaView DvNew(char *pastPlays, Message messages[])
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	// create new DraculaView
-	DraculaView new = malloc(sizeof(*new));
+	// create new game view
+	DraculaView new = malloc(sizeof(struct draculaView));
 	if (new == NULL) {
-		fprintf(stderr, "Couldn't allocate DraculaView\n");
+		fprintf(stderr, "Couldn't allocate DraculaView!\n");
 		exit(EXIT_FAILURE);
 	}
-    
-    // set up values
+	
+	// set up values
 	new->roundNum = (strlen(pastPlays)+1) / 8;
 	new->gameScore = GAME_START_SCORE;
 	new->allPlayers = malloc(NUM_PLAYERS * sizeof(PlayerInfo));
@@ -91,6 +90,9 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 		// set name
 		new->allPlayers[i].name = PLAYER_LORD_GODALMING + i;
         
+		//set all currLocation to NOWHERE
+		new->allPlayers[i].currLocation = NOWHERE;
+
 		// create space for previous trails and fill them with 
 		new->allPlayers[i].prevMoves = malloc((new->roundNum+7) * sizeof(Place));
 		if (new->allPlayers[i].prevMoves == NULL) {
@@ -110,7 +112,7 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 	
 	// fill in trails and calculate game scores and health
 	completePastPlaysDv(new, pastPlays);
-	
+
 	return new;
 }
 
@@ -506,9 +508,11 @@ void completePlayerTrailsDv(DraculaView dv, char *startId, Player player) {
 
 	for (int i = 0; i < MIN_TRAIL; i++) {
 		// first empty stop in trail
-		if (dv->allPlayers[player].prevMoves[i] == TBA_LOCATION) 
+		if (dv->allPlayers[player].prevMoves[i] == TBA_LOCATION) {
 			dv->allPlayers[player].prevMoves[i] = cityId;
-			
+			break;
+		}
+					
 	}
 
 	// reset that player's current position to the first in the trail
@@ -576,15 +580,19 @@ void completePastPlaysDv(DraculaView dv, char *pastPlays) {
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
 			// if they are in the hospital because of losing lifepoints
-			if (DvGetPlayerLocation(dv, roundPlayer) == ST_JOSEPH_AND_ST_MARY && dv->allPlayers[roundPlayer].health <= 0)
+			if (DvGetPlayerLocation(dv, roundPlayer) == ST_JOSEPH_AND_ST_MARY 
+				&& dv->allPlayers[roundPlayer].health <= 0)
 				dv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 			// check each action in the round
 			for (int i = 3; pastPlays[startOfRound+i] != '.'; i++) {
 				switch(pastPlays[startOfRound+i]) {
-					case 'T': // encountered trap
+					case 'T': {// encountered trap
+						if (dv->allPlayers[roundPlayer].health <= 0) break;
+						removeTrapFromDracDv(dv, startOfRound+i);
 						dv->allPlayers[roundPlayer].health -= LIFE_LOSS_TRAP_ENCOUNTER;
 						break;
+					}
 					case 'D': // endcountered dracula
 						dv->allPlayers[roundPlayer].health -= LIFE_LOSS_DRACULA_ENCOUNTER;
 						dv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_HUNTER_ENCOUNTER;
@@ -608,7 +616,8 @@ void completePastPlaysDv(DraculaView dv, char *pastPlays) {
 			}
 
 			// when the player didnt move and didnt just got sent to hospital
-			if (dv->allPlayers[roundPlayer].prevMoves[0] == dv->allPlayers[roundPlayer].prevMoves[1]
+			if (dv->allPlayers[roundPlayer].prevMoves[0] == 
+				dv->allPlayers[roundPlayer].prevMoves[1]
 				&& dv->allPlayers[roundPlayer].health <= 0)
 				dv->allPlayers[roundPlayer].health += LIFE_GAIN_REST;
 
@@ -617,22 +626,18 @@ void completePastPlaysDv(DraculaView dv, char *pastPlays) {
 				dv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 		} else { // player is dracula
-			// check each action in the round
-			for (int i = 0; i < 4; i++) {
-				if (pastPlays[startOfRound+i] == 'V')
-						dv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES;
-			}
-
+			// check if vamp matured
+			if (pastPlays[startOfRound+5] == 'V')
+					dv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 			// use draculas current location to test if he is at sea
-			dracLocationDetailDv(dv, true);
+			PlaceId lastPos = dracLocationDetailDv(dv, true);
 
-			if (dv->allPlayers[roundPlayer].currLocation == CASTLE_DRACULA)
+			if (lastPos == CASTLE_DRACULA)
 				dv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
 		}
 	}
 	
 }
-
 // determine if dracula is current at sea, including
 // double moves
 PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth) {
@@ -724,4 +729,34 @@ PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth) {
 		dv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
 		
 	return currId;
+}
+
+// when a hunter encounters a trap remove the trap from draculas trail
+// in the pastPlays string
+void removeTrapFromDracDv(DraculaView dv, int HunterTrapPos) {
+	char cityAbbrev[3] = {dv->pastPlays[HunterTrapPos-2], dv->pastPlays[HunterTrapPos-1], '\0'};
+	// location which trap was found by hunter
+	PlaceId trapCity = placeAbbrevToId(cityAbbrev);
+
+	int i;
+	// find location in pastPlays string
+	for (i = 0; i < DvGetRound(dv); i++) {
+		// position of trap in pastPlay string
+		int checkTrap = 35 + (5 * ROUND_DIFF * i);
+		if (dv->pastPlays[checkTrap] != 'T') 
+			continue;
+
+		// check the location of the trap is the same as the one the hunter found
+		char dracCity[3] = {dv->pastPlays[checkTrap-2], dv->pastPlays[checkTrap-1], '\0'};
+		PlaceId dracLoc = placeAbbrevToId(dracCity);
+		if (dracLoc != trapCity)
+			continue;
+		
+		// remove 'T' from string
+		char *tmpPastPlays = malloc(strlen(dv->pastPlays)*sizeof(char));
+		strcpy(tmpPastPlays, dv->pastPlays);
+		tmpPastPlays[checkTrap] = '.';
+		strcpy(dv->pastPlays, tmpPastPlays);
+		free(tmpPastPlays);
+	}
 }

@@ -90,7 +90,10 @@ GameView GvNew(char *pastPlays, Message messages[])
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 		// set name
 		new->allPlayers[i].name = PLAYER_LORD_GODALMING + i;
-        
+         
+		//set all currLocation to NOWHERE
+		new->allPlayers[i].currLocation = NOWHERE;
+
 		// create space for previous trails and fill them with 
 		new->allPlayers[i].prevMoves = malloc((new->roundNum+7) * sizeof(Place));
 		if (new->allPlayers[i].prevMoves == NULL) {
