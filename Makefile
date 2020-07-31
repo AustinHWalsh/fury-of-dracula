@@ -32,8 +32,8 @@ testMap.o: testMap.c Map.h Places.h
 
 Places.o: Places.c Places.h Game.h
 Map.o: Map.c Map.h Places.h Game.h
-GameView.o:	GameView.c GameView.h Game.h
-HunterView.o: HunterView.c HunterView.h Game.h
+GameView.o:	GameView.c GameView.h Game.h Graph.h
+HunterView.o: HunterView.c HunterView.h Game.h Graph.h
 DraculaView.o: DraculaView.c DraculaView.h Game.h Graph.h
 testUtils.o: testUtils.c Places.h Game.h
 

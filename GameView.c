@@ -478,9 +478,9 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 			curr = curr->next;
 		}
 
-		// teleport if no moves possible
+		// no moves possible
 		if (*numReturnedLocs == 0)
-			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+			reachableConn[(*numReturnedLocs)] = NULL;
 
 	} else { // hunters move
 		while (curr != NULL) {

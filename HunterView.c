@@ -20,6 +20,9 @@
 #include "HunterView.h"
 #include "Map.h"
 #include "Places.h"
+
+#include "Graph.h"
+
 // add your own #includes here
 #define NOT_MEMBER 0
 #define IS_MEMBER 1
@@ -51,6 +54,9 @@ struct hunterView {
 void completePlayerTrailsHv(HunterView hv, char *startId, Player player);
 void completePastPlaysHv(HunterView hv, char *pastPlays);
 PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth);
+void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray, 
+int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]);
+Graph makeRailGraph();
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
@@ -240,8 +246,51 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
                              int *pathLength)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*pathLength = 0;
-	return NULL;
+	//*pathLength = 0;
+
+	PlaceId *path = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
+
+	Graph map = newGraph(NUM_REAL_PLACES);
+	
+	int railDistance = (hunter + HvGetRound(hv)) % 4;
+    for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+        insertEdge(map, CONNECTIONS[i].v, CONNECTIONS[i].w);
+		//if src and dest are connected by RAIL
+		if (CONNECTIONS[i].v == hv->allPlayers[hunter].currLocation
+			&& CONNECTIONS[i].w == dest && CONNECTIONS[i].t == RAIL) {
+			//exclude if outside raildistance
+			if (railDistance == 0)
+				continue;
+			//if railDistance > 0, loop will add adjacent cities by rail 
+		}
+    }
+
+	*pathLength = findPathLength(map, hv->allPlayers[hunter].currLocation, dest, path);
+
+	//shift one place to the left to remove source location
+	for (int i = 0; i <= *pathLength; i++)
+		path[i] = path[i + 1];
+
+	PlaceId *tmpPath = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
+
+	Graph railGraph = makeRailGraph();
+	if (railDistance > 1 && railDistance <= 3) {
+		int pathLen;
+		for (int i = 0; i < MAX_REAL_PLACE; i++) {
+			if (PLACES[i].type == LAND && placeIdToType(hv->allPlayers[hunter].currLocation) == LAND) {
+				pathLen = findPathLength(railGraph, hv->allPlayers[hunter].currLocation, PLACES[i].id, tmpPath);
+				if (pathLen > 1 && pathLen <= 3) {
+					for (int j = 1; j <= pathLen; j++) {
+						path[pathLen] = tmpPath[j];
+						pathLen++;
+					}
+				}
+			}
+		}
+	}
+	dropGraph(railGraph);
+	dropGraph(map);
+	return path;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -331,9 +380,63 @@ PlaceId *HvWhereCanIGo(HunterView hv, int *numReturnedLocs)
 PlaceId *HvWhereCanIGoByType(HunterView hv, bool road, bool rail,
                              bool boat, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	// adjacency list of the connections leaving the currentLoc
+	PlaceId from = hv->allPlayers[hv->currPlayer].currLocation;
+	ConnList currentReach = MapGetConnections(hv->m, from);
+	ConnList curr = currentReach;
+
+	// array of reachable locations
+	PlaceId *reachableConn = malloc((MapNumPlaces(hv->m)) * sizeof(PlaceId));
+
+	// create an array of visited places, ensure no doubleups in returned array
+	// used only when the hunter moves, because of the rail algorithm
+	int visitedLocations[NUM_REAL_PLACES] = {0};
 	*numReturnedLocs = 0;
-	return NULL;
+	reachableConn[(*numReturnedLocs)++] = from;
+	visitedLocations[from]++;
+	
+	// Dracula can only move to specific locations
+	if (hv->currPlayer == PLAYER_DRACULA) {
+		// iterate through the list
+		while (curr != NULL) {
+			// test the location can be added
+			if (curr->type != RAIL && curr->p != ST_JOSEPH_AND_ST_MARY) {
+				// test bools to add to array
+				if (road && curr->type == ROAD && 
+					visitedLocations[curr->p] != 0)  
+					reachableConn[(*numReturnedLocs)++] = currentReach->p;
+				else if (boat && curr->type == BOAT) 
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+			}
+			curr = curr->next;
+		}
+
+		// teleport if no moves possible
+		if (*numReturnedLocs == 0)
+			reachableConn[(*numReturnedLocs)++] = TELEPORT;
+
+	} else { // hunters move
+		while (curr != NULL) {
+			if (visitedLocations[curr->p] == 0) {
+				int railCount = (HvGetRound(hv) + hv->currPlayer) % 4;
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRailHv(hv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
+			curr = curr->next;
+		}		
+	}
+
+	return reachableConn;
 }
 
 PlaceId *HvWhereCanTheyGo(HunterView hv, Player player,
@@ -355,6 +458,15 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
+
+Graph makeRailGraph() {
+    Graph railGraph = newGraph(NUM_REAL_PLACES);
+    for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+        if (CONNECTIONS[i].t == RAIL)
+            insertEdge(railGraph, CONNECTIONS[i].v, CONNECTIONS[i].w);
+    }
+	return railGraph;
+}
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
@@ -617,4 +729,36 @@ PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth) {
 		hv->allPlayers[PLAYER_DRACULA].health -= LIFE_LOSS_SEA;
 		
 	return currId;
+}
+
+// add all possible rail locations to the reacharray, only while the hunter
+// can move through another rail. 
+void recurAddRailHv(HunterView hv, ConnList reachList, PlaceId *reachArray, 
+	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
+	// base case when the hunter has run out of rail moves
+	
+	if (*railDistance < 1)
+		return;
+	else {
+		// when the passed location is not a previously added one
+		if (visitedLocs[reachList->p] == 0) {
+			// add the current vertice to the list
+			reachArray[(*numReturnedLocs)++] = reachList->p; 
+			// make sure it isnt visited again
+			visitedLocs[reachList->p]++;
+			// reduce the number of rail trips left by 1
+			(*railDistance)--;
+
+			// get all the connections of the current vertice
+			ConnList curr = MapGetConnections(hv->m, reachList->p);
+			// loop through each one and recur if rail connection
+			while (curr != NULL) {
+				if (curr->type == RAIL)
+					recurAddRailHv(hv, curr, reachArray, railDistance, 
+						numReturnedLocs, visitedLocs);
+				curr = curr->next;
+			}
+		} 
+	}
+
 }
