@@ -440,46 +440,7 @@ PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
 PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
                           int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-
-	//player hasn't made a move yet
-	if (dv->allPlayers[player].currLocation == NOWHERE) {
-		numReturnedLocs = 0;
-		return NULL;
-	}
-	
-	PlaceId *canGo;
-	int canGoNum = 0;
-
-	//player is a hunter
-	if (player != PLAYER_DRACULA) {
-		//calculate number of adjacent locations
-		int connectionNum = 0;
-		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
-				connectionNum++;
-			}
-		}
-		canGo = malloc(connectionNum * sizeof (PlaceId));
-		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
-			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
-				//int railDistance = (DvGetRound(dv) + player) % 4;
-				if (CONNECTIONS[i].t == RAIL /*&& within rail distance*/) {
-					canGo[canGoNum] = CONNECTIONS[i].w;
-					canGoNum++;
-				} else {
-					canGo[canGoNum] = CONNECTIONS[i].w;
-					canGoNum++;
-				}
-			}
-		}
-		*numReturnedLocs = connectionNum;
-		return canGo;
-	}
-	//player is Dracula
-	canGo = DvWhereCanIGo(dv, &canGoNum);
-	*numReturnedLocs = canGoNum;
-	return canGo;
+	return DvWhereCanTheyGoByType(dv, player, true, true, true, numReturnedLocs);
 }
 
 PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
