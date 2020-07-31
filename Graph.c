@@ -13,7 +13,7 @@
 typedef struct GraphRep {
 	int nV;		 // #vertices
 	int nE;		 // #edges
-	int **edges; // matrix of weights (0 == no edge)
+	int **edges; // matrix of edges (0 == no edge)
 } GraphRep;
 
 // check validity of Vertex
@@ -32,7 +32,7 @@ Edge mkEdge (Graph g, Vertex v, Vertex w)
 
 // insert an Edge
 // - sets (v,w) and (w,v)
-void insertEdge (Graph g, Vertex v, Vertex w, int wt)
+void insertEdge (Graph g, Vertex v, Vertex w)
 {
 	assert (g != NULL && validV (g, v) && validV (g, w));
 
@@ -40,8 +40,8 @@ void insertEdge (Graph g, Vertex v, Vertex w, int wt)
 		// an edge already exists; do nothing.
 		return;
 
-	g->edges[v][w] = wt;
-	g->edges[w][v] = wt;
+	g->edges[v][w] = 1;
+	g->edges[w][v] = 1;
 	g->nE++;
 }
 
@@ -107,7 +107,7 @@ void showGraph (Graph g, char **names)
 
 // find a path between two vertices using breadth-first traversal
 // only allow edges whose weight is less than "max"
-int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
+int findPathLength (Graph g, Vertex src, Vertex dest)
 {
 	assert (g != NULL);
 	//return 0; // never find a path ... you need to fix this
@@ -149,7 +149,7 @@ int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
 			prev = visited[prev];
 		}
 		// insert visited cities into path array from dest to src
-		int pathNum = 0;
+		/*int pathNum = 0;
 		prev = visited[dest];
 		while (VNum - pathNum - 1 > 0) {
 			path[VNum - pathNum - 1] = prev;
@@ -157,9 +157,10 @@ int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
 			prev = visited[prev];
 		}
 		path[VNum] = dest;
-		path[0] = src;
-		// return #vertices in path
-		return VNum+1;
+		path[0] = src;*/
+		//#vertices in path is VNum - 1
+		//return path length (#edges traversed)
+		return VNum - 1;
 	}
 	return 0;
 }

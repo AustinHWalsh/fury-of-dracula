@@ -26,6 +26,6 @@ Graph newGraph (int nV);
 void dropGraph (Graph);
 Graph makeGraph (int, int **);
 void showGraph (Graph, char **);
-int findPathLength (Graph, Vertex, Vertex);
+int findPathLength (Graph, Vertex, Vertex, int, int *);
 
 #endif

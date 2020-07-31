@@ -26,6 +26,7 @@
 #define LOCATION_ABBREVIATION_MAX 3
 #define TBA_LOCATION -3
 #define MIN_TRAIL (dv->roundNum + 7)
+//#define MAX_RAIL_CONN 43
 
 #define PLACE_POS 6
 #define PLAYER_POS 7
@@ -52,7 +53,7 @@ struct draculaView {
 // declare your own functions here
 void completePlayerTrails(GameView dv, char *startId, Player player);
 void completePastPlays(GameView dv, char *pastPlays);
-int railPathLength();
+Graph makeRailGraph();
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -479,6 +480,14 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 // Your own interface functions
 
 // TODO
+
+Graph makeRailGraph() {
+    Graph railGraph = newGraph(NUM_REAL_PLACES);
+    for (int i = 0; CONNECTIONS[i] != UNKNOWN_PLACE; i++) {
+        if (CONNECTIONS[i].t == RAIL)
+            insertEdge(railGraph, CONNECTIONS[i].v, CONNECTIONS[i].w);
+    }
+}
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
