@@ -20,6 +20,9 @@
 #include "HunterView.h"
 #include "Map.h"
 #include "Places.h"
+
+#include "Graph.h"
+
 // add your own #includes here
 #define NOT_MEMBER 0
 #define IS_MEMBER 1
@@ -240,8 +243,27 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
                              int *pathLength)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*pathLength = 0;
-	return NULL;
+	//*pathLength = 0;
+
+	PlaceId *path = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
+
+	Graph map = newGraph(NUM_REAL_PLACES);
+    for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+        insertEdge(map, CONNECTIONS[i].v, CONNECTIONS[i].w);
+		if (CONNECTIONS[i].v == hv->allPlayers[hunter].currLocation
+			&& CONNECTIONS[i].w == dest && CONNECTIONS[i].t == RAIL) {
+				int railDistance = (hunter + HvGetRound(hv)) % 4;
+				//exclude if outside raildistance
+			}
+    }
+
+	*pathLength = (map, hv->allPlayers[hunter].currLocation, dest, path);
+
+	//shift one place to the left to remove source location
+	for (int i = 0; i <= pathLength; i++)
+		path[i] = path[i + 1];
+
+	return path;
 }
 
 ////////////////////////////////////////////////////////////////////////
