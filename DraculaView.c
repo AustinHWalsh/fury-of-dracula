@@ -320,7 +320,7 @@ PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 			j++;
 		} else if (moves[i] == HIDE) { 
 			//include currLocation if a hide hasnt been made in last 5 rds
-			validLocations[j] = gv->allPlayers[PLAYER_DRACULA].currLocation;
+			validLocations[j] = dv->allPlayers[PLAYER_DRACULA].currLocation;
 			j++;
 		} else
 			//stop looping to ignore doublebacks
@@ -334,16 +334,94 @@ PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
                              int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+	int numMoves = -1;
+	PlaceId *moves = DvGetValidMoves(dv, &numMoves);
+
+	//Dracula hasn't made a move yet or cannot make any move other than teleport
+	if (dv->allPlayers[PLAYER_DRACULA].currLocation.name == NULL || numMoves == 0) {
+	    *numReturnedLocs = 0;
+	    return NULL;
+	}
+	//Dracula has made a move
+	PlaceId *validLocations = malloc(numMoves * sizeof(PlaceId));
+	
+	//locations adjacent by road/boat, not rail or ST_JOSEPH_AND_ST_MARY
+	// not including locations that in the last 5 prevmoves
+	for (int i = 0, int j = 0; i < numMoves; i++) {
+		if (moves[i] != HIDE && moves[i] != DOUBLE_BACK_1
+			&& moves[i] != DOUBLE_BACK_2 && moves[i] != DOUBLE_BACK_3
+			&& moves[i] != DOUBLE_BACK_4 && moves[i] != DOUBLE_BACK_5) {
+			//ignores all non-location moves
+			for (int k = 0; CONNECTIONS[k] != UNKNOWN_PLACE; k++) {
+				if (CONNECTIONS[k].v == dv->allPlayers[PLAYER_DRACULA].currLocation
+					&& CONNECTIONS[k].w == validLocations[j])
+					break;
+			}
+			if (road == true && CONNECTIONS[k].t == ROAD) {
+				//road connections are unrestricted
+				validLocations[j] = moves[i];
+				j++;
+			}
+			if (boat == true && CONNECTIONS[k].t == BOAT) {
+				//boat connections are unrestricted
+				validLocations[j] = moves[i];
+				j++;
+			}
+		} else if (moves[i] == HIDE) { 
+			//include currLocation if a hide hasnt been made in last 5 rds
+			validLocations[j] = dv->allPlayers[PLAYER_DRACULA].currLocation;
+			j++;
+		} else
+			//stop looping to ignore doublebacks
+			break;
+	}
+	*numReturnedLocs = j;
+	return validLocations;
 }
 
 PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
                           int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+
+	//player hasn't made a move yet
+	if (dv->allPlayers[player].currLocation.name == NULL) {
+		numReturnedLocs = 0;
+		return NULL;
+	}
+	
+	PlaceId *canGo;
+	int canGoNum = 0;
+
+	//player is a hunter
+	if (player != PLAYER_DRACULA) {
+		canGo = malloc(connectionNum * sizeof (PlaceId));
+		//calculate number of adjacent locations
+		int connectionNum = 0;
+		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
+				connectionNum++;
+			}
+		}
+		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
+				//int railDistance = (DvGetRound(dv) + player) % 4;
+				if (CONNECTIONS[i].t == RAIL /*&& within rail distance*/) {
+					canGo[canGoNum] = CONNECTIONS[i].w;
+					canGoNum++;
+				} else {
+					canGo[canGoNum] = CONNECTIONS[i].w;
+					canGoNum++;
+				}
+			}
+		}
+		*numReturnedLocs = connectionNum;
+		return canGo;
+	}
+	//player is Dracula
+	canGo = DvWhereCanIGo(dv, &canGoNum);
+	*numReturnedLocs = canGoNum;
+	return canGo;
 }
 
 PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
@@ -351,8 +429,48 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
                                 int *numReturnedLocs)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+	
+	//player hasn't made a move yet
+	if (dv->allPlayers[player].currLocation.name == NULL) {
+		numReturnedLocs = 0;
+		return NULL;
+	}
+	
+	PlaceId *canGo;
+	int canGoNum = 0;
+
+	//player is a hunter
+	if (player != PLAYER_DRACULA) {
+		canGo = malloc(connectionNum * sizeof (PlaceId));
+		//calculate number of adjacent locations
+		int connectionNum = 0;
+		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
+				connectionNum++;
+			}
+		}
+		for (int i = 0; CONNECTIONS[i].v != UNKNOWN_PLACE; i++) {
+			if (CONNECTIONS[i].v == dv->allPlayers[player].currLocation) {
+				//int railDistance = (DvGetRound(dv) + player) % 4;
+				if (CONNECTIONS[i].t == RAIL && rail == true /*&& within rail distance*/) {
+					canGo[canGoNum] = CONNECTIONS[i].w;
+					canGoNum++;
+				} else {
+					if ((CONNECTIONS[i].t == ROAD && road == true)
+						|| (CONNECTIONS[i].t == BOAT && boat == true)) {
+						canGo[canGoNum] = CONNECTIONS[i].w;
+						canGoNum++;
+					}
+				}
+			}
+		}
+		*numReturnedLocs = connectionNum;
+		return canGo;
+	}
+	//player is Dracula
+	canGo = DvWhereCanIGoByType(dv, road, boat, &canGoNum);
+	*numReturnedLocs = canGoNum;
+	return canGo;
 }
 
 ////////////////////////////////////////////////////////////////////////
