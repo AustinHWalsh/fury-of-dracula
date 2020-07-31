@@ -53,10 +53,10 @@ struct draculaView {
 };
 
 // declare your own functions here
-void completePlayerTrails(DraculaView dv, char *startId, Player player);
-void completePastPlays(DraculaView dv, char *pastPlays);
+void completePlayerTrailsDv(DraculaView dv, char *startId, Player player);
+void completePastPlaysDv(DraculaView dv, char *pastPlays);
 Graph makeRailGraph();
-PlaceId dracLocationDetail(DraculaView dv, bool updateHealth);
+PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth);
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
@@ -109,7 +109,7 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 	}
 	
 	// fill in trails and calculate game scores and health
-	completePastPlays(new, pastPlays);
+	completePastPlaysDv(new, pastPlays);
 	
 	return new;
 }
@@ -499,7 +499,7 @@ Graph makeRailGraph() {
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
-void completePlayerTrails(DraculaView dv, char *startId, Player player) {
+void completePlayerTrailsDv(DraculaView dv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
@@ -518,7 +518,7 @@ void completePlayerTrails(DraculaView dv, char *startId, Player player) {
 // clean up and complete the remaining required dv elements,
 // such as current score and player health
 // dependencies on the pastPlays string
-void completePastPlays(DraculaView dv, char *pastPlays) {
+void completePastPlaysDv(DraculaView dv, char *pastPlays) {
 	
 	// when its the first round
 	if (dv->roundNum == 0) {
@@ -571,7 +571,7 @@ void completePastPlays(DraculaView dv, char *pastPlays) {
 		}
         
 		// add the player's current location to the trail
-		completePlayerTrails(dv, &pastPlays[startOfRound+1], roundPlayer);
+		completePlayerTrailsDv(dv, &pastPlays[startOfRound+1], roundPlayer);
 
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
@@ -624,7 +624,7 @@ void completePastPlays(DraculaView dv, char *pastPlays) {
 			}
 
 			// use draculas current location to test if he is at sea
-			dracLocationDetail(dv, true);
+			dracLocationDetailDv(dv, true);
 
 			if (dv->allPlayers[roundPlayer].currLocation == CASTLE_DRACULA)
 				dv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
@@ -635,7 +635,7 @@ void completePastPlays(DraculaView dv, char *pastPlays) {
 
 // determine if dracula is current at sea, including
 // double moves
-PlaceId dracLocationDetail(DraculaView dv, bool updateHealth) {
+PlaceId dracLocationDetailDv(DraculaView dv, bool updateHealth) {
 	int doubleVal = 0, healthLoss = 0, len;
 	PlaceId currId = dv->allPlayers[PLAYER_DRACULA].currLocation;
 	// find the len of the array upto currLocation
