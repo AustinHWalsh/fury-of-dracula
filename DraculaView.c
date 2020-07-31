@@ -231,10 +231,34 @@ PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 		
 		char cityAbbrev[3] = {dv->pastPlays[checkTrap-2], dv->pastPlays[checkTrap-1], '\0'};
 		PlaceId cityId = placeAbbrevToId(cityAbbrev);
-        // checking if the 
+
+		// accounting for double backs/hide
+		switch(cityId) {
+			case DOUBLE_BACK_1:
+				cityId = trapLocations[*numTraps-1];
+				break;
+			case DOUBLE_BACK_2:
+				cityId = trapLocations[*numTraps-2];
+				break;
+			case DOUBLE_BACK_3:
+				cityId = trapLocations[*numTraps-3];
+				break;
+			case DOUBLE_BACK_4:
+				cityId = trapLocations[*numTraps-4];
+				break;
+			case DOUBLE_BACK_5:
+				cityId = trapLocations[*numTraps-5];
+				break;
+			case HIDE:
+				cityId = trapLocations[*numTraps-1];
+				break;
+			default:
+				break;
+		}
 		trapLocations[(*numTraps)++] = cityId;
     } 
-	    
+	for (int i = 0; i < *numTraps; i++)
+		printf("%d\n", trapLocations[i]);
     return trapLocations;
 }
 

@@ -246,7 +246,28 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 		
 		char cityAbbrev[3] = {gv->pastPlays[checkTrap-2], gv->pastPlays[checkTrap-1], '\0'};
 		PlaceId cityId = placeAbbrevToId(cityAbbrev);
-        // checking if the 
+        switch(cityId) {
+			case DOUBLE_BACK_1:
+				cityId = trapLocations[*numTraps-1];
+				break;
+			case DOUBLE_BACK_2:
+				cityId = trapLocations[*numTraps-2];
+				break;
+			case DOUBLE_BACK_3:
+				cityId = trapLocations[*numTraps-3];
+				break;
+			case DOUBLE_BACK_4:
+				cityId = trapLocations[*numTraps-4];
+				break;
+			case DOUBLE_BACK_5:
+				cityId = trapLocations[*numTraps-5];
+				break;
+			case HIDE:
+				cityId = trapLocations[*numTraps-1];
+				break;
+			default:
+				break;
+		}
 		trapLocations[(*numTraps)++] = cityId;
     } 
 	    
@@ -629,7 +650,7 @@ void completePastPlays(GameView gv, char *pastPlays) {
 		} else { // player is dracula
 			// check if vamp matured
 			if (pastPlays[startOfRound+5] == 'V')
-					gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
+				gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 			// use draculas current location to test if he is at sea
 			PlaceId lastPos = dracLocationDetail(gv, true);
 

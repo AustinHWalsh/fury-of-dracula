@@ -235,7 +235,8 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 
 	// check a new location was found
 	if (lastLoc != NOWHERE)
-		*round = i/7;
+		*round = *round + i/7;
+	
 	return lastLoc;
 }
 
@@ -433,11 +434,9 @@ void completePastPlaysHv(HunterView hv, char *pastPlays) {
 				hv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 		} else { // player is dracula
-			// check each action in the round
-			for (int i = 0; i < 4; i++) {
-				if (pastPlays[startOfRound+i] == 'V')
-						hv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES;
-			}
+			// check if vamp matured
+			if (pastPlays[startOfRound+5] == 'V')
+				hv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 
 			// use draculas current location to test if he is at sea
 			PlaceId lastPos = dracLocationDetailHv(hv, true);
