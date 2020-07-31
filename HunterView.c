@@ -39,7 +39,6 @@ typedef struct playerInfo {
 	PlaceId *prevMoves; 		 // players past moves in a dynamic array
 } PlayerInfo;
 
-
 struct hunterView {
 	Round roundNum;
 	int gameScore;
@@ -49,9 +48,9 @@ struct hunterView {
 	PlayerInfo *allPlayers;
 };
 
-void completePlayerTrails(HunterView hv, char *startId, Player player);
-void completePastPlays(HunterView hv, char *pastPlays);
-PlaceId dracLocationDetail(HunterView hv, bool updateHealth);
+void completePlayerTrailsHv(HunterView hv, char *startId, Player player);
+void completePastPlaysHv(HunterView hv, char *pastPlays);
+PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth);
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
@@ -82,7 +81,7 @@ HunterView HvNew(char *pastPlays, Message messages[])
 	for (int i = 0; i < NUM_PLAYERS; i++) {
 		// set name
 		new->allPlayers[i].name = PLAYER_LORD_GODALMING + i;
-
+		new->allPlayers[i].currLocation = NOWHERE;
 		// create space for previous trails and fill them with 
 		new->allPlayers[i].prevMoves = malloc((new->roundNum+7) * sizeof(Place));
 		if (new->allPlayers[i].prevMoves == NULL) {
@@ -101,7 +100,7 @@ HunterView HvNew(char *pastPlays, Message messages[])
 	}
 
 	// fill in trails and calculate game scores and health
-	completePastPlays(new, pastPlays);
+	completePastPlaysHv(new, pastPlays);
 
 	return new;
 }
@@ -151,7 +150,7 @@ PlaceId HvGetPlayerLocation(HunterView hv, Player player)
 			return hv->allPlayers[player].currLocation;
 	//player is Dracula
 	} else {
-		return dracLocationDetail(hv, false);
+		return dracLocationDetailHv(hv, false);
 	}
 	return NOWHERE;
 }
@@ -220,18 +219,22 @@ PlaceId HvGetVampireLocation(HunterView hv)
 PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 {
 	// get the last location
-	PlaceId lastLoc = dracLocationDetail(hv, false);
-	if (lastLoc == SEA_UNKNOWN || lastLoc == UNKNOWN_PLACE)
-		return NOWHERE;
+	PlaceId lastLoc = NOWHERE;
 	
-	// find the last position of the location in the prevMoves
+	// find the last real location in the prevMoves
 	int i;
 	for (i = MIN_TRAIL; i > 0; i--) {
-		if (hv->allPlayers[PLAYER_DRACULA].prevMoves[i] == lastLoc) 
+		printf("%d\n", hv->allPlayers[PLAYER_DRACULA].prevMoves[i]);
+		if (hv->allPlayers[PLAYER_DRACULA].prevMoves[i] <= MAX_REAL_PLACE &&
+			hv->allPlayers[PLAYER_DRACULA].prevMoves[i] >= MIN_REAL_PLACE) {
+			lastLoc = hv->allPlayers[PLAYER_DRACULA].prevMoves[i];
 			break;
+		}
 	}
 
-	*round = i/7;
+	// check a new location was found
+	if (lastLoc != NOWHERE)
+		*round = i/7;
 	return lastLoc;
 }
 
@@ -287,7 +290,7 @@ void completePlayerTrailsHv(HunterView hv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
-
+	printf("%s\n", cityAbbrev);
 	for (int i = 0; i < MIN_TRAIL; i++) {
 		// first empty stop in trail
 		if (hv->allPlayers[player].prevMoves[i] == TBA_LOCATION) {
@@ -357,7 +360,7 @@ void completePastPlaysHv(HunterView hv, char *pastPlays) {
 		}
         
 		// add the player's current location to the trail
-		completePlayerTrails(hv, &pastPlays[startOfRound+1], roundPlayer);
+		completePlayerTrailsHv(hv, &pastPlays[startOfRound+1], roundPlayer);
 
 		// not dracula
 		if (roundPlayer != PLAYER_DRACULA) {
@@ -418,7 +421,7 @@ void completePastPlaysHv(HunterView hv, char *pastPlays) {
 			}
 
 			// use draculas current location to test if he is at sea
-			PlaceId lastPos = dracLocationDetail(hv, true);
+			PlaceId lastPos = dracLocationDetailHv(hv, true);
 
 			if (lastPos == CASTLE_DRACULA)
 				hv->allPlayers[roundPlayer].health += LIFE_GAIN_CASTLE_DRACULA;
