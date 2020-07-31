@@ -629,7 +629,7 @@ void completePastPlays(GameView gv, char *pastPlays) {
 		} else { // player is dracula
 			// check if vamp matured
 			if (pastPlays[startOfRound+5] == 'V')
-					gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
+				gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 			// use draculas current location to test if he is at sea
 			PlaceId lastPos = dracLocationDetail(gv, true);
 
