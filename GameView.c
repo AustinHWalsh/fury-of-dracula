@@ -201,6 +201,7 @@ PlaceId GvGetVampireLocation(GameView gv)
 			currStr = strtok(NULL, ". ");
 			
 		}
+		
 		//vampire cannot exist in the sea
 		if (strcmp(vampLoc, "S?") == 0) 
 			return NOWHERE;
@@ -211,7 +212,12 @@ PlaceId GvGetVampireLocation(GameView gv)
 		char *hunterLoc = &currStr[1];
 		while (currStr != NULL) {
 			currStr = strtok(NULL, ". \n");
+			if (currStr == NULL) 
+				break;
 			hunterLoc = &currStr[1];
+			if (hunterLoc != NULL && strlen(hunterLoc) > 2)
+				hunterLoc[2] = '\0';
+				
 			if (currStr != NULL && currStr[0] != 'D' && strcmp(hunterLoc, vampLoc) == 0)
 				//vampire has been vanquished
 				return NOWHERE;
@@ -302,34 +308,46 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
 	//check if input is valid
     assert(gv != NULL);
     assert(player >= 0 && player <= 5);
-    assert(gv->allPlayers->prevMoves != NULL);
+    assert(gv->allPlayers != NULL);
 	
-	for (int i = 0; i < MIN_TRAIL; i++) {
-		if (gv->allPlayers[i].name != PLAYER_DRACULA) {
-			LocationsHistory[*numReturnedLocs] = gv->allPlayers[i].currLocation;
-			(*numReturnedLocs)++;
-		} 
-		else if (gv->allPlayers[i].name == PLAYER_DRACULA) {
-			if (gv->allPlayers[PLAYER_DRACULA].currLocation != CITY_UNKNOWN 
-				&& gv->allPlayers[PLAYER_DRACULA].currLocation != SEA_UNKNOWN) {
-					LocationsHistory[*numReturnedLocs] = gv->allPlayers[PLAYER_DRACULA].currLocation;
-					(*numReturnedLocs)++;
-			}		
-			else {
-				if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) == SEA) {
-					LocationsHistory[*numReturnedLocs] = SEA_UNKNOWN;
-					(*numReturnedLocs)++;
-				}
-				else if (placeIdToType(gv->allPlayers[PLAYER_DRACULA].currLocation) == LAND) {
-					LocationsHistory[*numReturnedLocs] = CITY_UNKNOWN;
-					(*numReturnedLocs)++;
-				}
+	//insert player location from (total moves - numLocs) to total moves
+	for (int j = 0; gv->allPlayers[player].prevMoves[j] != TBA_LOCATION; j++) {
+		PlaceId currPlace = gv->allPlayers[player].prevMoves[j];
+		int doubleVal = 0;
+		// if the currLocation is a double back/hide
+		while (currPlace > SEA_UNKNOWN) {
+			// test the current location
+			switch(currPlace) {
+				case DOUBLE_BACK_1:
+					doubleVal++;
+					break;
+				case DOUBLE_BACK_2:
+					doubleVal = doubleVal+2;
+					break;
+				case DOUBLE_BACK_3:
+					doubleVal = doubleVal+3;
+					break;
+				case DOUBLE_BACK_4:
+					doubleVal = doubleVal+4;
+					break;
+				case DOUBLE_BACK_5:
+					doubleVal = doubleVal+5;
+					break;
+				case HIDE:
+					doubleVal++;
+					break;
+				default:
+					doubleVal = 0;
+					break;
 			}
+			// update and test again
+			currPlace = gv->allPlayers[player].prevMoves[j-doubleVal];
 		}
+		LocationsHistory[(*numReturnedLocs)++] = currPlace;
 	}
 
-	return LocationsHistory;
 	*canFree = true;
+	return LocationsHistory;
 }
 
 PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
@@ -416,8 +434,9 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	// create an array of visited places, ensure no doubleups in returned array
 	// used only when the hunter moves, because of the rail algorithm
 	int visitedLocations[NUM_REAL_PLACES] = {0};
-
 	*numReturnedLocs = 0;
+	reachableConn[(*numReturnedLocs)++] = from;
+	int railCount = (round + player) % 4;
 	
 	// Dracula can only move to specific locations
 	if (player == PLAYER_DRACULA) {
@@ -441,25 +460,22 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 
 	} else { // hunters move
 		while (curr != NULL) {
-			int railCount = (round + player) % 4;
-			int *railDistance = &railCount;
-			// determine which type of connection can be added
-
-			if (rail && curr->type == RAIL)
-				recurAddRail(gv, curr, reachableConn, railDistance, 
-					numReturnedLocs, visitedLocations);
-			else if (road && curr->type == ROAD) {
-				reachableConn[(*numReturnedLocs)++] = curr->p;
-				visitedLocations[curr->p]++;
-			} else if (boat && curr->type == BOAT) {
-				reachableConn[(*numReturnedLocs)++] = curr->p; 
-				visitedLocations[curr->p]++;
-			}
-				
+			if (visitedLocations[curr->p] == 0) {
+				int *railDistance = &railCount;
+				// determine which type of connection can be added
+				if (rail && curr->type == RAIL)
+					recurAddRail(gv, curr, reachableConn, railDistance, 
+						numReturnedLocs, visitedLocations);
+				else if (road && curr->type == ROAD) {
+					reachableConn[(*numReturnedLocs)++] = curr->p;
+					visitedLocations[curr->p]++;
+				} else if (boat && curr->type == BOAT) {
+					reachableConn[(*numReturnedLocs)++] = curr->p; 
+					visitedLocations[curr->p]++;
+				}
+			}	
 			curr = curr->next;
-		}
-
-			
+		}		
 	}
 
 	return reachableConn;
@@ -607,12 +623,9 @@ void completePastPlays(GameView gv, char *pastPlays) {
 				gv->allPlayers[roundPlayer].health = GAME_START_HUNTER_LIFE_POINTS;
 
 		} else { // player is dracula
-			// check each action in the round
-			for (int i = 0; i < 4; i++) {
-				if (pastPlays[startOfRound+i] == 'V')
-						gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES;
-			}
-
+			// check if vamp matured
+			if (pastPlays[startOfRound+5] == 'V')
+					gv->gameScore -= SCORE_LOSS_VAMPIRE_MATURES; 
 			// use draculas current location to test if he is at sea
 			PlaceId lastPos = dracLocationDetail(gv, true);
 
@@ -652,7 +665,7 @@ char convertToPlayer(Player player) {
 // can move through another rail. 
 void recurAddRail(GameView gv, ConnList reachList, PlaceId *reachArray, 
 	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
-
+	printf("%d\n", *railDistance);
 	// base case when the hunter has run out of rail moves
 	if (*railDistance < 1)
 		return;

@@ -283,7 +283,7 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 // initialise the trails of each person in the allPersons array
 // using the pastPlays string
-void completePlayerTrails(HunterView hv, char *startId, Player player) {
+void completePlayerTrailsHv(HunterView hv, char *startId, Player player) {
 	// create the abbreviation of the city from the paststring
 	char cityAbbrev[3] = {startId[0], startId[1], '\0'};
 	PlaceId cityId = placeAbbrevToId(cityAbbrev);
@@ -304,7 +304,7 @@ void completePlayerTrails(HunterView hv, char *startId, Player player) {
 // clean up and complete the remaining required hv elements,
 // such as current score and player health
 // dependencies on the pastPlays string
-void completePastPlays(HunterView hv, char *pastPlays) {
+void completePastPlaysHv(HunterView hv, char *pastPlays) {
 	
 	// when its the first round
 	if (hv->roundNum == 0) {
@@ -428,7 +428,7 @@ void completePastPlays(HunterView hv, char *pastPlays) {
 }
 
 // convert a Player to a char and return it
-char convertToPlayer(Player player) {
+char convertToPlayerHv(Player player) {
 	char playerChar;
 	assert(player >= 0 && player <= 4);
 	switch(player) {
@@ -452,41 +452,9 @@ char convertToPlayer(Player player) {
 	return playerChar;
 }
 
-// add all possible rail locations to the reacharray, only while the hunter
-// can move through another rail. 
-void recurAddRail(HunterView hv, ConnList reachList, PlaceId *reachArray, 
-	int *railDistance, int *numReturnedLocs, int visitedLocs[NUM_REAL_PLACES]) {
-
-	// base case when the hunter has run out of rail moves
-	if (*railDistance < 1)
-		return;
-	else {
-		// when the passed location is not a previously added one
-		if (visitedLocs[reachList->p] == 0) {
-			// add the current vertice to the list
-			reachArray[(*numReturnedLocs)++] = reachList->p; 
-			// make sure it isnt visited again
-			visitedLocs[reachList->p]++;
-			// reduce the number of rail trips left by 1
-			(*railDistance)--;
-			
-			// get all the connections of the current vertice
-			ConnList curr = MapGetConnections(hv->m, reachList->p);
-			// loop through each one and recur if rail connection
-			while (curr != NULL) {
-				if (curr->type == RAIL)
-					recurAddRail(hv, reachList, reachArray, railDistance, 
-						numReturnedLocs, visitedLocs);
-				curr = curr->next;
-			}
-		} 
-	}
-
-}
-
 // determine if dracula is current at sea, including
 // double moves
-PlaceId dracLocationDetail(HunterView hv, bool updateHealth) {
+PlaceId dracLocationDetailHv(HunterView hv, bool updateHealth) {
 	int doubleVal = 0, healthLoss = 0, len;
 	PlaceId currId = hv->allPlayers[PLAYER_DRACULA].currLocation;
 	// find the len of the array upto currLocation
