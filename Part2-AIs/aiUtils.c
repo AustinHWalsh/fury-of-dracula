@@ -10,4 +10,7 @@
 
 //initialise functions 
 
-
+int randomRange(int arrayLen) {
+    // call random and get range
+    return random() % (arrayLen+1);
+}

@@ -29,8 +29,8 @@ playerDracula.o: player.c dracula.h Game.h DraculaView.h GameView.h Places.h
 playerHunter.o: player.c hunter.h Game.h HunterView.h GameView.h Places.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-dracula.o: dracula.c dracula.h DraculaView.h GameView.h Places.h Game.h
-hunter.o: hunter.c hunter.h HunterView.h GameView.h Places.h Game.h
+dracula.o: dracula.c dracula.h DraculaView.h GameView.h Places.h Game.h aiUtils.h
+hunter.o: hunter.c hunter.h HunterView.h GameView.h Places.h Game.h aiUtils.h
 GameView.o:	GameView.c GameView.h Places.h Game.h
 DraculaView.o: DraculaView.c DraculaView.h GameView.h Places.h Game.h
 HunterView.o: HunterView.c GameView.h Places.h HunterView.h Game.h
