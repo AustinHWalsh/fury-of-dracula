@@ -1,0 +1,166 @@
+// Graph.c ... implementation of Graph ADT
+// Written by John Shepherd, May 2013
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "Graph.h"
+#include "Queue.h"
+
+// graph representation (adjacency matrix)
+typedef struct GraphRep {
+	int nV;		 // #vertices
+	int nE;		 // #edges
+	int **edges; // matrix of edges (0 == no edge)
+} GraphRep;
+
+// check validity of Vertex
+int validV (Graph g, Vertex v)
+{
+	return (g != NULL && v >= 0 && v < g->nV);
+}
+
+// make an edge
+Edge mkEdge (Graph g, Vertex v, Vertex w)
+{
+	assert (g != NULL && validV (g, v) && validV (g, w));
+	Edge new = {v, w}; // struct assignment
+	return new;
+}
+
+// insert an Edge
+// - sets (v,w) and (w,v)
+void insertEdge (Graph g, Vertex v, Vertex w)
+{
+	assert (g != NULL && validV (g, v) && validV (g, w));
+
+	if (g->edges[v][w] != 0 && g->edges[w][v] != 0)
+		// an edge already exists; do nothing.
+		return;
+
+	g->edges[v][w] = 1;
+	g->edges[w][v] = 1;
+	g->nE++;
+}
+
+// remove an Edge
+// - unsets (v,w) and (w,v)
+void removeEdge (Graph g, Vertex v, Vertex w)
+{
+	assert (g != NULL && validV (g, v) && validV (g, w));
+	if (g->edges[v][w] == 0 && g->edges[w][v] == 0)
+		// an edge doesn't exist; do nothing.
+		return;
+
+	g->edges[v][w] = 0;
+	g->edges[w][v] = 0;
+	g->nE--;
+}
+
+// create an empty graph
+Graph newGraph (int nV)
+{
+	assert (nV > 0);
+
+	GraphRep *new = malloc (sizeof *new);
+	assert (new != NULL);
+	*new = (GraphRep){ .nV = nV, .nE = 0 };
+
+	new->edges = calloc ((size_t) nV, sizeof (int *));
+	assert (new->edges != NULL);
+	for (int v = 0; v < nV; v++) {
+		new->edges[v] = calloc ((size_t) nV, sizeof (int));
+		assert (new->edges[v] != 0);
+	}
+
+	return new;
+}
+
+// free memory associated with graph
+void dropGraph (Graph g)
+{
+	assert (g != NULL);
+	for (int v = 0; v < g->nV; v++)
+		free (g->edges[v]);
+	free (g->edges);
+	free (g);
+}
+
+// display graph, using names for vertices
+void showGraph (Graph g, char **names)
+{
+	assert (g != NULL);
+	printf ("#vertices=%d, #edges=%d\n\n", g->nV, g->nE);
+	int v, w;
+	for (v = 0; v < g->nV; v++) {
+		printf ("%d %s\n", v, names[v]);
+		for (w = 0; w < g->nV; w++) {
+			if (g->edges[v][w]) {
+				printf ("\t%s (%d)\n", names[w], g->edges[v][w]);
+			}
+		}
+		printf ("\n");
+	}
+}
+
+// find a path between two vertices using breadth-first traversal
+// only allow edges whose weight is less than "max"
+int findPathLength (Graph g, Vertex src, Vertex dest)
+{
+	assert (g != NULL);
+	//return 0; // never find a path ... you need to fix this
+
+	//Conditions: shortest path = minimum vertices & only consider flights at most max km
+
+	//BFS to find shortest path
+	int visited[g->nV];
+	Queue q = newQueue();
+	for(int i = 0; i < g->nV; i++) visited[i] = -1;
+	int found = 0; // 0 is false, 1 is true
+	visited[src] = src;
+	QueueJoin(q, src);
+	while (found == 0 && !(QueueIsEmpty (q))) {
+		// src and dest are the same city
+		if (src == dest) {
+			//visited[0] = src;
+			//path[0] = src;
+			return 0;
+		}
+		Vertex v = QueueLeave(q);
+		if (v == dest) {
+			found = 1;
+		} else {
+			for (int i = 0; i < g->nV; i++) {
+				if (g->edges[v][i] && visited[i] == -1/* && g->edges[v][i] <= max*/) {
+					visited[i] = v;
+					QueueJoin(q, i);
+				}
+			}
+		}
+	}
+	if (found == 1) {
+		// count #vertices/cities
+		int VNum = 2;
+		Vertex prev = visited[dest];
+		while (visited[prev] != src) {
+			VNum++;
+			prev = visited[prev];
+		}
+		// insert visited cities into path array from dest to src
+		/*int pathNum = 0;
+		prev = visited[dest];
+		while (VNum - pathNum - 1 > 0) {
+			path[VNum - pathNum - 1] = prev;
+			pathNum++;
+			prev = visited[prev];
+		}
+		path[VNum] = dest;
+		path[0] = src;*/
+		//#vertices in path is VNum + 1
+		//return path length (#edges traversed)
+		return VNum - 1;
+	}
+	return 0;
+}
