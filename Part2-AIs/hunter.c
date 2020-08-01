@@ -16,6 +16,34 @@
 
 void decideHunterMove(HunterView hv)
 {
-	// TODO: Replace this with something better!
+	////////////////////////////////////////////////////////
+	// For whoever builds this tomorrow morning,
+	// (0.) Check if round is 0, if so place the hunter in 
+	// a city of your choice, it doesnt matter
+	// (1.) Call getvalidmoves to find where drac can go
+	// if the pointer passed into valid moves is 0:
+	// registerBestPlay to be TP (teleport)
+	// (2.) Call hvwherecanigo and find the len of the array
+	// if len is 0, registerbestplay to a rand loc on map
+	// (only happens if the hunter hasnt moved yet)
+	// (3.) Call randomRange from aiUtils.h, passing in len
+	// of the hvwherecanigo array. Get output array index and 
+	// call registerbestplay passing in the city in the
+	// hvwehrecanigo array using the index from randomRange
+	// -----------------------------------------------------
+	// dont forget to create the arrays for steps (1.) & (2.)
+	// and make the pointer for (1.)
+	// also as dvwherecanigo returns placeids, make sure to
+	// convert it to abbrev before passing it into register
+	// bestplay
+	// -----------------------------------------------------
+	// MOST IMPORTANTLY: READ WHAT EVERY FUNCTION DOES, 
+	// REGISTERBESTPLAY PLAYER.C etc etc.
+	////////////////////////////////////////////////////////
+
+	// explaining what randomRange does
+	int arrayLen = 6;
+	int newArrayPos = randomRange(arrayLen);
+	
 	registerBestPlay("TO", "Have we nothing Toulouse?");
 }

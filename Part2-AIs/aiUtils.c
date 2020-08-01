@@ -23,7 +23,7 @@ unsigned int random();
 unsigned int random() {
     //set X as a random number
     static unsigned int X;
-    srand(X)
+    srand(X);
     X = 0 ? srand(X) : X;
     X = (a * X + c) % m;
     return X;

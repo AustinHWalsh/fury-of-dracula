@@ -16,6 +16,32 @@
 
 void decideDraculaMove(DraculaView dv)
 {
-	// TODO: Replace this with something better!
+
+	////////////////////////////////////////////////////////
+	// For whoever builds this tomorrow morning,
+	// (0.) Check if round is 0, if so place dracula in 
+	// a city of your choice, it doesnt matter
+	// (1.) Call getvalidmoves to find where drac can go
+	// if the pointer passed into valid moves is 0:
+	// registerBestPlay to be TP (teleport)
+	// (2.) Call dvwherecanigo and find the len of the array
+	// if len is 0, use any of the other moves from (1.)
+	// in registerBestPlay, i.e. HI, D1, D2, etc
+	// (3.) Call randomRange from aiUtils.h, passing in len
+	// of the dvwherecanigo array. Get output array index and 
+	// call registerbestplay passing in the city in the
+	// dvwehrecanigo array using the index from randomRange
+	// -----------------------------------------------------
+	// dont forget to create the arrays for steps (1.) & (2.)
+	// and make the pointer for (1.)
+	// also as dvwherecanigo returns placeids, make sure to
+	// convert it to abbrev before passing it into register
+	// bestplay
+	// -----------------------------------------------------
+	// MOST IMPORTANTLY: READ WHAT EVERY FUNCTION DOES, 
+	// REGISTERBESTPLAY PLAYER.C etc etc.
+	////////////////////////////////////////////////////////
+
+
 	registerBestPlay("CD", "Mwahahahaha");
 }
