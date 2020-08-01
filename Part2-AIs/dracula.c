@@ -42,6 +42,10 @@ void decideDraculaMove(DraculaView dv)
 	// REGISTERBESTPLAY PLAYER.C etc etc.
 	////////////////////////////////////////////////////////
 
-
+	// explaining what randomRange does
+	int arrayLen = 6;
+	// the newArrayPos will always be < arrayLen
+	int newArrayPos = randomRange(arrayLen);
+	
 	registerBestPlay("CD", "Mwahahahaha");
 }

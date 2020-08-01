@@ -14,7 +14,7 @@ BINS = dracula hunter
 # add any other *.o files that your solution requires
 # (and add their dependencies below after DraculaView.o)
 # if you're not using Map.o or Places.o, you can remove them
-OBJS = GameView.o Map.o Places.o
+OBJS = GameView.o Map.o Places.o aiUtils.o
 
 # add whatever system libraries you need here (e.g. -lm)
 LIBS =
@@ -38,6 +38,7 @@ Map.o: Map.c Map.h Places.h
 Places.o: Places.c Places.h
 
 # if you use other ADTs, add dependencies for them here
+aiUtils.o: aiUtils.c aiUtils.h
 
 .PHONY: clean
 clean:

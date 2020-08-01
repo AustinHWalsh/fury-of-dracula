@@ -43,7 +43,8 @@ void decideHunterMove(HunterView hv)
 
 	// explaining what randomRange does
 	int arrayLen = 6;
+	// the newArrayPos will always be < arrayLen
 	int newArrayPos = randomRange(arrayLen);
-	
+
 	registerBestPlay("TO", "Have we nothing Toulouse?");
 }
