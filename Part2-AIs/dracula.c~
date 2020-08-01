@@ -12,7 +12,6 @@
 #include "dracula.h"
 #include "DraculaView.h"
 #include "Game.h"
-#include "aiUtils.h"
 
 void decideDraculaMove(DraculaView dv)
 {
