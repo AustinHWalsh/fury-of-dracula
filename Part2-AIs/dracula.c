@@ -16,7 +16,31 @@
 
 void decideDraculaMove(DraculaView dv)
 {
+	if (dv->round == 0) {
+		dv->playerLocation[PLAYER_DRACULA] == _______ //(decide what location to put for dracula)
+	}
+	int *numReturnedMoves; // not sure if this should be initialised or not
+	PlaceId *validMoves = malloc(NUM_REAL_PLACES * sizeof(PlaceId));
+	validMoves = DvGetValidMoves(dv, numReturnedMoves);
 
+	if (validMoves == 0) {
+		registerBestPlay(TP, _____ ); //fill out message, not sure what 
+	}
+	
+	// not sure if this is right
+	PlaceId *reachable = GvGetReachableByType(dv->gv, PLAYER_DRACULA, 1,
+	                                          DvWhereAmI(dv), road, false,
+	                                          boat, &numReachable); 
+	
+	// not sure what the value for numReturnedLocs should be 
+	reachable = DvWhereCanIGo(dv, numReturnedLocs); 
+	int moveNum = randomRange(len(reachable));
+	if (len(reachable)) == 0) {
+		registerBestPlay(validMoves[moveNum], ______) // enter message 
+	}
+	
+	registerBestPlay(reachable[moveNum], ______) // enter message 
+	
 	////////////////////////////////////////////////////////
 	// For whoever builds this tomorrow morning,
 	// (0.) Check if round is 0, if so place dracula in 
