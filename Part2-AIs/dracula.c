@@ -19,12 +19,14 @@
 void decideDraculaMove(DraculaView dv)
 {
 	// first round
-	if (DvGetRound(dv) == 0) {
+	Round roundNum = DvGetRound(dv);
+	if (roundNum == 0) {
 		registerBestPlay("MI", "start!"); //milan
 		return;
 	}
-		
+	
 	int num = 0;
+	
 	PlaceId *validMoves = DvGetValidMoves(dv, &num);
 
 	// no valid moves must teleport
@@ -48,8 +50,24 @@ void decideDraculaMove(DraculaView dv)
 			moveNum = randomRange(num);
 			loc = PLACES[reachable[moveNum]].abbrev;
 			break;
+		} 
+	}
+
+	// if the location is in the hunter's reachable, randomise again
+	for (int i = 0; i < NUM_PLAYERS-1; i++) {
+		int locs = 0;
+		Player player = PLAYER_LORD_GODALMING+i;
+		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
+		// test each reachable 
+		for (int j = 0; j < locs; j++) {
+			if (reachable[moveNum] = hunterMoves[j]) {
+				moveNum = randomRange(num);
+				loc = PLACES[reachable[moveNum]].abbrev;
+				break;
+			}
 		}
 	}
+
 	// move to random location
 	registerBestPlay(loc, "ha!"); 
 }
