@@ -46,7 +46,7 @@ void decideHunterMove(HunterView hv)
 
 		//if random location is already occupied by another player, randomise again
 		for (int i = PLAYER_LORD_GODALMING; i <= PLAYER_DRACULA; i++) {
-			if (HvGetPlayerLocation(hv, i) == loc && i != HvGetPlayer(hv)) {
+			if (HvGetPlayerLocation(hv, i) == reachable[moveNum] && i != HvGetPlayer(hv)) {
 				moveNum = randomRange(num);
 				loc = PLACES[reachable[moveNum]].abbrev;
 				break;

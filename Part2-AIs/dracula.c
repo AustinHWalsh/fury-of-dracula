@@ -44,7 +44,7 @@ void decideDraculaMove(DraculaView dv)
 		
 	//if random location is already occupied by hunter, randomise again
 	for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
-		if (DvGetPlayerLocation(dv, i) == loc) {
+		if (DvGetPlayerLocation(dv, i) == reachable[moveNum]) {
 			moveNum = randomRange(num);
 			loc = PLACES[reachable[moveNum]].abbrev;
 			break;
