@@ -43,7 +43,7 @@ void decideHunterMove(HunterView hv)
 
 		if (HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
 			const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
-			char *currPlayerLoc;
+			char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
 			strcpy(currPlayerLoc, currPlayerLocAbbrev);
 			registerBestPlay(currPlayerLoc, "Die, Dracula!");
 		}
