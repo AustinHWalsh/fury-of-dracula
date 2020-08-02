@@ -20,7 +20,7 @@ void decideDraculaMove(DraculaView dv)
 {
 	// first round
 	if (DvGetRound(dv) == 0) {
-		registerBestPlay("CD", "start!");
+		registerBestPlay("MI", "start!"); //milan
 		return;
 	}
 		

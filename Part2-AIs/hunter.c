@@ -20,7 +20,14 @@ void decideHunterMove(HunterView hv)
 {
 	// first round
     if (HvGetRound(hv) == 0) {
-		registerBestPlay("LV", "start!");
+		if (HvGetPlayer(hv) == PLAYER_LORD_GODALMING)
+			registerBestPlay("MN", "start!"); //manchester
+		else if (HvGetPlayer(hv) == PLAYER_DR_SEWARD)
+			registerBestPlay("FR", "start!"); //frankfurt
+		else if (HvGetPlayer(hv) == PLAYER_VAN_HELSING)
+			registerBestPlay("SR", "start!"); //saragossa
+		else if (HvGetPlayer(hv) == PLAYER_MINA_HARKER)
+			registerBestPlay("SZ", "start!"); //szeged
 		return;
 	}
 
