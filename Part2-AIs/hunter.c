@@ -10,6 +10,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
+#include <string.h>
 
 #include "Game.h"
 #include "hunter.h"
@@ -29,6 +30,23 @@ void decideHunterMove(HunterView hv)
 		else if (HvGetPlayer(hv) == PLAYER_MINA_HARKER)
 			registerBestPlay("SZ", "start!"); //szeged
 		return;
+	}
+
+	int currPlayer = HvGetPlayer(hv);
+
+	//if dracula enters location of curr hunter, hunter stays where they are
+	if (currPlayer != PLAYER_DRACULA
+		//dracula's current location is revealed
+		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != NOWHERE
+		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != CITY_UNKNOWN
+		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != SEA_UNKNOWN) {
+
+		if (HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
+			const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
+			char *currPlayerLoc;
+			strcpy(currPlayerLoc, currPlayerLocAbbrev);
+			registerBestPlay(currPlayerLoc, "Die, Dracula!");
+		}
 	}
 
 	int num = 0;
