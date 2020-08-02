@@ -43,6 +43,14 @@ void decideHunterMove(HunterView hv)
 		// get random location
 		int moveNum = randomRange(num);
 		char *loc = PLACES[reachable[moveNum]].abbrev;
+
+		//if random location is already occupied by another player, randomise again
+		for (int i = PLAYER_LORD_GODALMING; i <= PLAYER_DRACULA; i++) {
+			if (HvGetPlayerLocation(hv, i) == *loc && i != HvGetPlayer(hv)) {
+				moveNum = randomRange(num);
+				break;
+			}
+		}
 		registerBestPlay(loc, "moving :)"); // enter message 
 	}
 }

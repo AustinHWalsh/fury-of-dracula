@@ -42,6 +42,13 @@ void decideDraculaMove(DraculaView dv)
 		return;
 	}
 		
+	//if random location is already occupied by hunter, randomise again
+	for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
+		if (DvGetPlayerLocation(dv, i) == *loc) {
+			moveNum = randomRange(num);
+			break;
+		}
+	}
 	// move to random location
 	registerBestPlay(loc, "ha!"); 
 }
