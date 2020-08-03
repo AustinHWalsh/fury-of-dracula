@@ -16,6 +16,7 @@
 #include "Game.h"
 #include "aiUtils.h"
 #define DRAC_NEXT_MOVE reachable[moveNum] 
+#define DRAC_RETURN_MOVE convertAbbrev(placeIdToAbbrev(DRAC_NEXT_MOVE))
 
 void decideDraculaMove(DraculaView dv)
 {
@@ -41,7 +42,8 @@ void decideDraculaMove(DraculaView dv)
 	int moveNum = randomRange(numOfReach);
 	// no places to go, just double back/hide
 	if (numOfReach == 0) {
-		registerBestPlay(placeIdToAbbrev(validMoves[numOfReach]), "haha!"); 
+		const char *abbrev = placeIdToAbbrev(validMoves[numOfReach]);
+		registerBestPlay(convertAbbrev(abbrev), "haha!"); 
 		return;
 	}
 
@@ -92,5 +94,5 @@ void decideDraculaMove(DraculaView dv)
 	}
 
 	// move to random location
-	registerBestPlay(placeIdToAbbrev(DRAC_NEXT_MOVE), "ha!"); 
+	registerBestPlay(DRAC_RETURN_MOVE, "ha!"); 
 }
