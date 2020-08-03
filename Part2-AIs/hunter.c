@@ -59,11 +59,14 @@ void decideHunterMove(HunterView hv)
 	//Round 1
 	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) == 1) {
 		shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
-		if (shortestPathLen == 1)
-			registerBestPlay(placeIdToAbbrev(DracLocation), "You were next to me all along!");
-		else
-			registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
-		return;
+		//follow Drac if he is within 5 moves
+		if (shortestPathLen <= 5) {
+			if (shortestPathLen == 1)
+				registerBestPlay(placeIdToAbbrev(DracLocation), "You were next to me all along!");
+			else
+				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+			return;
+		}
 	}
 
 	int lastRevealedRound;
@@ -71,8 +74,15 @@ void decideHunterMove(HunterView hv)
 
 	//head towards Dracula after round 1
 	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) > 1) {
-		shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
-		registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+		//follow Drac if last location is within 5 moves
+		if (shortestPathLen <= 5) {
+			shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
+			if (shortestPathLen == 1)
+				registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
+			else
+				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+			return;
+		}
 	}
 
 	int num = 0;
