@@ -26,7 +26,6 @@ void decideDraculaMove(DraculaView dv)
 	}
 	
 	int num = 0;
-	
 	PlaceId *validMoves = DvGetValidMoves(dv, &num);
 
 	// no valid moves must teleport
@@ -60,7 +59,7 @@ void decideDraculaMove(DraculaView dv)
 		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
 		// test each reachable 
 		for (int j = 0; j < locs; j++) {
-			if (reachable[moveNum] = hunterMoves[j]) {
+			if (reachable[moveNum] == hunterMoves[j]) {
 				moveNum = randomRange(num);
 				loc = PLACES[reachable[moveNum]].abbrev;
 				break;
