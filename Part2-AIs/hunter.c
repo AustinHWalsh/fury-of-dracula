@@ -34,20 +34,45 @@ void decideHunterMove(HunterView hv)
 
 	int currPlayer = HvGetPlayer(hv);
 
+	int DracLocation = HvGetPlayerLocation(hv, PLAYER_DRACULA);
+
 	//if dracula enters location of curr hunter, hunter stays where they are
 	if (currPlayer != PLAYER_DRACULA
 		//dracula's current location is revealed
-		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != NOWHERE
-		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != CITY_UNKNOWN
-		&& HvGetPlayerLocation(hv, PLAYER_DRACULA) != SEA_UNKNOWN) {
+		&& DracLocation != NOWHERE
+		&& DracLocation != CITY_UNKNOWN
+		&& DracLocation != SEA_UNKNOWN) {
 
 		if (HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
 			const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
-			char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
-			strcpy(currPlayerLoc, currPlayerLocAbbrev);
-			registerBestPlay(currPlayerLoc, "Die, Dracula!");
+			//char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
+			//strcpy(currPlayerLoc, currPlayerLocAbbrev);
+			registerBestPlay(currPlayerLocAbbrev, "Die, Dracula!");
 			return;
 		}
+	}
+
+	int shortestPathLen;
+	PlaceId *shortestPath;
+
+	//hunters head towards the first revealed location of Dracula
+	//Round 1
+	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) == 1) {
+		shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
+		if (shortestPathLen == 1)
+			registerBestPlay(placeIdToAbbrev(DracLocation), "You were next to me all along!");
+		else
+			registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+		return;
+	}
+
+	int lastRevealedRound;
+	PlaceId lastKnownDracLoc = HvGetLastKnownDraculaLocation(hv, &lastRevealedRound);
+
+	//head towards Dracula after round 1
+	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) > 1) {
+		shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
+		registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
 	}
 
 	int num = 0;
@@ -61,16 +86,14 @@ void decideHunterMove(HunterView hv)
 	else {
 		// get random location
 		int moveNum = randomRange(num);
-		char *loc = PLACES[reachable[moveNum]].abbrev;
 
 		//if random location is already occupied by another hunter, randomise again
 		for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
 			if (HvGetPlayerLocation(hv, i) == reachable[moveNum] && i != HvGetPlayer(hv)) {
 				moveNum = randomRange(num);
-				loc = PLACES[reachable[moveNum]].abbrev;
 				break;
 			}
 		}
-		registerBestPlay(loc, "moving :)"); // enter message 
+		registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
 	}
 }
