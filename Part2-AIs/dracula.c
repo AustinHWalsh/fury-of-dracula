@@ -47,6 +47,32 @@ void decideDraculaMove(DraculaView dv)
 		return;
 	}
 
+	//drac does double back when he sees that hunters are getting close 
+	//but are not in his wherecanigo locs and have less health
+	//so that he can go back and lay more traps in his trail
+
+	// check if hunters are in range of whereCanIGo array of drac
+	for (int i = 0; i < NUM_PLAYERS-1; i++) {
+		int locs = 0;
+		Player player = PLAYER_LORD_GODALMING+i;
+		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
+		for (int j = 0; j < locs; j++) {
+			if (DRAC_NEXT_MOVE == hunterMoves[j]) {
+				moveNum = randomRange(numOfReach);
+				break;
+			}
+			else {
+				int hunterHealth = DvGetHealth(dv, player);
+				if (hunterHealth <= 4) {
+					
+				}
+			}
+		}
+	}
+	//if true, check if their health is less than 4, if yes then go to 
+	//the nearest place of that hunter w a double back and repeat 
+	//else, if hunters are close but health is more than 4, then 
+
 	// if dracula has less than 10 health, try to get him to move
 	// away from the sea
 	if (DvGetHealth(dv, PLAYER_DRACULA) <= 10) {
