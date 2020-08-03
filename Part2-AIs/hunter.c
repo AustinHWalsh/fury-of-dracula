@@ -47,7 +47,7 @@ void decideHunterMove(HunterView hv)
 			const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
 			//char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
 			//strcpy(currPlayerLoc, currPlayerLocAbbrev);
-			registerBestPlay(currPlayerLocAbbrev, "Die, Dracula!");
+			registerBestPlay(convertAbbrev(currPlayerLocAbbrev), "Die, Dracula!");
 			return;
 		}
 	}
@@ -62,9 +62,9 @@ void decideHunterMove(HunterView hv)
 		//follow Drac if he is within 5 moves
 		if (shortestPathLen <= 5) {
 			if (shortestPathLen == 1)
-				registerBestPlay(placeIdToAbbrev(DracLocation), "You were next to me all along!");
+				registerBestPlay(convertAbbrev(placeIdToAbbrev(DracLocation)), "You were next to me all along!");
 			else
-				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+				registerBestPlay(convertAbbrev(placeIdToAbbrev(shortestPath[0])), "Behind you, Dracula.");
 			return;
 		}
 	}
@@ -78,9 +78,9 @@ void decideHunterMove(HunterView hv)
 		if (shortestPathLen <= 5) {
 			shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
 			if (shortestPathLen == 1)
-				registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
+				registerBestPlay(convertAbbrev(placeIdToAbbrev(lastKnownDracLoc)), "Reached Drac's last known location.");
 			else
-				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+				registerBestPlay(convertAbbrev(placeIdToAbbrev(shortestPath[0])), "Behind you, Dracula.");
 			return;
 		}
 	}
@@ -104,6 +104,6 @@ void decideHunterMove(HunterView hv)
 				break;
 			}
 		}
-		registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
+		registerBestPlay(convertAbbrev(placeIdToAbbrev(reachable[moveNum])), "moving :)"); // enter message 
 	}
 }
