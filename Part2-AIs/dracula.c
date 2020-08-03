@@ -26,13 +26,15 @@ void decideDraculaMove(DraculaView dv)
 		return;
 	}
 	
-	int numOfReach = 0, count;
+	int numOfReach = 0, count = 0;
 	PlaceId *validMoves = DvGetValidMoves(dv, &numOfReach);
 
 	// no valid moves must teleport
-	if (numOfReach == 0) 
-		registerBestPlay("TP", "haha!"); 
-	
+	if (numOfReach == 0) {
+		registerBestPlay("TP", "haha!");
+		return; 
+	}
+			
 	numOfReach = 0;
 	PlaceId *reachable = DvWhereCanIGo(dv, &numOfReach);
 
@@ -48,8 +50,20 @@ void decideDraculaMove(DraculaView dv)
 	if (DvGetHealth(dv, PLAYER_DRACULA) <= 10) {
 		// find a move in his reachable that isnt the sea
 		while (placeIdToType(DRAC_NEXT_MOVE) == SEA) {
-			if (moveNum+count > numOfReach) {
-					
+			moveNum++;
+			// restrict index to be within array
+			if (moveNum >= numOfReach) {
+				// reset moveNum to 0 and increase count
+				moveNum = 0;
+				// stops infinite loops from occuring
+				count++;
+			}
+			// if this while loop has occurred twice without breaking
+			// break it manually
+			if (count == 2) {
+				// reset moveNum
+				moveNum = randomRange(numOfReach);
+				break;
 			}
 		}
 	}
