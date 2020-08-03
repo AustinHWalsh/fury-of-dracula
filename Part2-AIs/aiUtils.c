@@ -33,3 +33,8 @@ int randomRange(int arrayLen) {
     // call random and get range
     return randomN() % (arrayLen+1);
 }
+
+char *convertAbbrev(const char *abbrev) {
+    // cast to char *
+    return (char *)abbrev;
+}
