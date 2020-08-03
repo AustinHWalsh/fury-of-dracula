@@ -46,6 +46,7 @@ void decideHunterMove(HunterView hv)
 			char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
 			strcpy(currPlayerLoc, currPlayerLocAbbrev);
 			registerBestPlay(currPlayerLoc, "Die, Dracula!");
+			return;
 		}
 	}
 
