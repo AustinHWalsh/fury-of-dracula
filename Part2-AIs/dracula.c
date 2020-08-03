@@ -41,10 +41,28 @@ void decideDraculaMove(DraculaView dv)
 
 	int moveNum = randomRange(numOfReach);
 	// no places to go, just double back/hide
-	if (numOfReach == 0) {
-		const char *abbrev = placeIdToAbbrev(validMoves[numOfReach]);
-		registerBestPlay(convertAbbrev(abbrev), "haha!"); 
-		return;
+	if (numOfReach != 0) {
+		
+		for (int i = 0; i < NUM_PLAYERS-1; i++) {
+			int locs = 0;
+			Player player = PLAYER_LORD_GODALMING+i;
+			PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
+		// test each reachable 
+			for (int j = 0; j < locs; j++) {
+				if (DRAC_NEXT_MOVE != hunterMoves[j]) {
+					for (int k = 0; k <= numOfReach; k++) {
+						if (validMoves[k] == HIDE) {
+							registerBestPlay("HI", "laters!")
+						return;
+						}
+					}
+					
+				}
+			}
+		}
+		//const char *abbrev = placeIdToAbbrev(validMoves[numOfReach]);
+		//registerBestPlay(convertAbbrev(abbrev), "haha!"); 
+		
 	}
 
 	//drac does double back when he sees that hunters are getting close 
@@ -52,7 +70,7 @@ void decideDraculaMove(DraculaView dv)
 	//so that he can go back and lay more traps in his trail
 
 	// check if hunters are in range of whereCanIGo array of drac
-	for (int i = 0; i < NUM_PLAYERS-1; i++) {
+	/* for (int i = 0; i < NUM_PLAYERS-1; i++) {
 		int locs = 0;
 		Player player = PLAYER_LORD_GODALMING+i;
 		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
@@ -64,11 +82,11 @@ void decideDraculaMove(DraculaView dv)
 			else {
 				int hunterHealth = DvGetHealth(dv, player);
 				if (hunterHealth <= 4) {
-					
+					PlaceId closestToHunter
 				}
 			}
 		}
-	}
+	} */
 	//if true, check if their health is less than 4, if yes then go to 
 	//the nearest place of that hunter w a double back and repeat 
 	//else, if hunters are close but health is more than 4, then 
