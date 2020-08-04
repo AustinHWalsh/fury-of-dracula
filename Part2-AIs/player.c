@@ -60,7 +60,7 @@ typedef DraculaView View;
 # define decideMove decideDraculaMove
 # define ViewFree DvFree
 
-# define xPastPlays "GZA.... SED.... HZU.... MZU...."
+# define xPastPlays "GMN.... SPL.... HAM.... MPA.... DMI.V.. GLV.... SLO.... HNS.... MST...."
 # define xMsgs { "", "", "", "" }
 
 #else
@@ -91,7 +91,7 @@ int main(void)
 
 // Saves characters from play (and appends a terminator)
 // and saves characters from message (and appends a terminator)
-void registerBestPlay(char *play, Message message)
+void registerBestPlay(const char *play, Message message)
 {
 	strncpy(latestPlay, play, MOVE_SIZE - 1);
 	latestPlay[MOVE_SIZE - 1] = '\0';

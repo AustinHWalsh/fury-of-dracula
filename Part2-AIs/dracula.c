@@ -36,14 +36,8 @@ void decideDraculaMove(DraculaView dv)
 	}
 			
 	numOfReach = 0;
-	PlaceId *reachable = DvWhereCanIGo(dv, &numOfReach);
-
 	int moveNum = randomRange(numOfReach);
-
-	if (moveNum == 0) {
-		registerBestPlay(placeIdToAbbrev(validMoves[numOfReach]), "yes!");
-		return;
-	}
+	
 	/*
 	// no places to go, just double back/hide
 	if (numOfReach != 0) {
@@ -171,5 +165,5 @@ void decideDraculaMove(DraculaView dv)
 	*/
 
 	// move to random location
-	registerBestPlay(placeIdToAbbrev(DRAC_NEXT_MOVE), "ha!"); 
+	registerBestPlay(placeIdToAbbrev(validMoves[moveNum]), "ha!"); 
 }
