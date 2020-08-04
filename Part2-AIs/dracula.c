@@ -26,7 +26,7 @@ void decideDraculaMove(DraculaView dv)
 		return;
 	}
 	
-	int numOfReach = 0, count = 0;
+	int numOfReach = 0;
 	PlaceId *validMoves = DvGetValidMoves(dv, &numOfReach);
 
 	// no valid moves must teleport
@@ -39,6 +39,12 @@ void decideDraculaMove(DraculaView dv)
 	PlaceId *reachable = DvWhereCanIGo(dv, &numOfReach);
 
 	int moveNum = randomRange(numOfReach);
+
+	if (moveNum == 0) {
+		registerBestPlay(placeIdToAbbrev(validMoves[numOfReach]), "yes!");
+		return;
+	}
+	/*
 	// no places to go, just double back/hide
 	if (numOfReach != 0) {
 		
@@ -110,11 +116,11 @@ void decideDraculaMove(DraculaView dv)
 				}
 			}
 		}
-	} 
+	} */
 	//if true, check if their health is less than 4, if yes then go to 
 	//the nearest place of that hunter w a double back and repeat 
 	//else, if hunters are close but health is more than 4, then 
-
+	/*
 	// if dracula has less than 10 health, try to get him to move
 	// away from the sea
 	if (DvGetHealth(dv, PLAYER_DRACULA) <= 10) {
@@ -137,8 +143,8 @@ void decideDraculaMove(DraculaView dv)
 			}
 		}
 	}
-	
-
+	*/
+	/*
 	// if the location is in the hunter's reachable, randomise again
 	for (int i = 0; i < NUM_PLAYERS-1; i++) {
 		int locs = 0;
@@ -152,6 +158,7 @@ void decideDraculaMove(DraculaView dv)
 			}
 		}
 	}
+	
 
 	//if random location is already occupied by hunter, randomise again
 	for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
@@ -160,6 +167,8 @@ void decideDraculaMove(DraculaView dv)
 			break;
 		} 
 	}
+
+	*/
 
 	// move to random location
 	registerBestPlay(placeIdToAbbrev(DRAC_NEXT_MOVE), "ha!"); 

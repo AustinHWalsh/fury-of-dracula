@@ -32,6 +32,7 @@ void decideHunterMove(HunterView hv)
 		return;
 	}
 
+	/*
 	int currPlayer = HvGetPlayer(hv);
 
 	int DracLocation = HvGetPlayerLocation(hv, PLAYER_DRACULA);
@@ -84,7 +85,7 @@ void decideHunterMove(HunterView hv)
 			return;
 		}
 	}
-
+	*/
 	int num = 0;
 
 	// find where the hunter can go
