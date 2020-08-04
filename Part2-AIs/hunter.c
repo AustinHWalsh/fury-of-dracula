@@ -90,21 +90,20 @@ void decideHunterMove(HunterView hv)
 
 	// find where the hunter can go
 	PlaceId *reachable = HvWhereCanIGo(hv, &num);
-	
+    if (num != 0)
+	    num--;
+    
 	// no reachable locations, move to liverpool
-	if (num == 0) 
-		registerBestPlay("LV", "move random!");
-	else {
-		// get random location
-		int moveNum = randomRange(num);
 
-		//if random location is already occupied by another hunter, randomise again
-		for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
-			if (HvGetPlayerLocation(hv, i) == reachable[moveNum] && i != HvGetPlayer(hv)) {
-				moveNum = randomRange(num);
-				break;
-			}
+	// get random location
+	int moveNum = randomRange(num);
+	//if random location is already occupied by another hunter, randomise again
+	for (int i = PLAYER_LORD_GODALMING; i < PLAYER_DRACULA; i++) {
+		if (HvGetPlayerLocation(hv, i) == reachable[moveNum] && i != HvGetPlayer(hv)) {
+			moveNum = randomRange(num);
+			break;
 		}
-		registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
 	}
+		
+	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
 }
