@@ -52,7 +52,7 @@ void decideDraculaMove(DraculaView dv)
 				if (DRAC_NEXT_MOVE != hunterMoves[j]) {
 					for (int k = 0; k <= numOfReach; k++) {
 						if (validMoves[k] == HIDE) {
-							registerBestPlay("HI", "laters!")
+							registerBestPlay("HI", "laters!");
 						return;
 						}
 					}
@@ -70,7 +70,7 @@ void decideDraculaMove(DraculaView dv)
 	//so that he can go back and lay more traps in his trail
 
 	// check if hunters are in range of whereCanIGo array of drac
-	/* for (int i = 0; i < NUM_PLAYERS-1; i++) {
+	 for (int i = 0; i < NUM_PLAYERS-1; i++) {
 		int locs = 0;
 		Player player = PLAYER_LORD_GODALMING+i;
 		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
@@ -82,11 +82,36 @@ void decideDraculaMove(DraculaView dv)
 			else {
 				int hunterHealth = DvGetHealth(dv, player);
 				if (hunterHealth <= 4) {
-					PlaceId closestToHunter
+					//PlaceId *closestToHunter = 
+					for (int k = 0; k < locs; k++) {
+						PlaceId dracCurrLoc = reachable[k];
+						if (dracCurrLoc[k] == hunterMoves[j]) {
+							if (validMoves[k] == DOUBLE_BACK_1) {
+								registerBestPlay("D1", "haha!");
+								return;
+							}
+							else if (validMoves[k] == DOUBLE_BACK_2) {
+								registerBestPlay("D2", "haha!");
+								return;
+							}
+							else if (validMoves[k] == DOUBLE_BACK_3) {
+								registerBestPlay("D3", "haha!");
+								return;
+							}
+							else if (validMoves[k] == DOUBLE_BACK_4) {
+								registerBestPlay("D4", "haha!");
+								return;
+							}
+							else if (validMoves[k] == DOUBLE_BACK_5) {
+								registerBestPlay("D5", "haha!");
+								return;
+							}
+						}
+					}
 				}
 			}
 		}
-	} */
+	} 
 	//if true, check if their health is less than 4, if yes then go to 
 	//the nearest place of that hunter w a double back and repeat 
 	//else, if hunters are close but health is more than 4, then 
