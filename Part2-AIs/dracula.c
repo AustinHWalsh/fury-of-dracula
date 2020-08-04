@@ -50,10 +50,10 @@ void decideDraculaMove(DraculaView dv)
 		// test each reachable 
 			for (int j = 0; j < locs; j++) {
 				if (DRAC_NEXT_MOVE != hunterMoves[j]) {
-					for (int k = 0; k <= numOfReach; k++) {
+					for (int k = 0; k < numOfReach; k++) {
 						if (validMoves[k] == HIDE) {
 							registerBestPlay("HI", "laters!");
-						return;
+							return;
 						}
 					}
 					
@@ -85,7 +85,7 @@ void decideDraculaMove(DraculaView dv)
 					//PlaceId *closestToHunter = 
 					for (int k = 0; k < locs; k++) {
 						PlaceId dracCurrLoc = reachable[k];
-						if (dracCurrLoc[k] == hunterMoves[j]) {
+						if (dracCurrLoc == hunterMoves[j]) {
 							if (validMoves[k] == DOUBLE_BACK_1) {
 								registerBestPlay("D1", "haha!");
 								return;
