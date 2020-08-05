@@ -11,11 +11,15 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "Game.h"
 #include "hunter.h"
 #include "HunterView.h"
 #include "aiUtils.h"
+
+//move to Castle Dracula
+void moveToCD(currPlayer);
 
 void decideHunterMove(HunterView hv)
 {
@@ -32,34 +36,41 @@ void decideHunterMove(HunterView hv)
 		return;
 	}
 
-	/*
-	int currPlayer = HvGetPlayer(hv);
+	/**/
+	bool goToCD = false;
+
+	int currPlayer = HvGetPlayer(hv); //current hunter
 
 	int DracLocation = HvGetPlayerLocation(hv, PLAYER_DRACULA);
-
-	//if dracula enters location of curr hunter, hunter stays where they are
-	if (currPlayer != PLAYER_DRACULA
-		//dracula's current location is revealed
-		&& DracLocation != NOWHERE
-		&& DracLocation != CITY_UNKNOWN
-		&& DracLocation != SEA_UNKNOWN) {
-
-		if (HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
-			//const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
-			//char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
-			//strcpy(currPlayerLoc, currPlayerLocAbbrev);
-			registerBestPlay(placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer)), "Die, Dracula!");
-			return;
-		}
-	}
 
 	int shortestPathLen;
 	PlaceId *shortestPath;
 
+	int whereDracCanGoLen;
+	PlaceId *whereDracCanGo;
+
+	if (HvGetPlayerLocation(hv, currPlayer) == CASTLE_DRACULA
+		|| HvGetLastKnownDraculaLocation(hv, HvGetRound(hv)) != CASTLE_DRACULA
+		|| HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
+		//stop hunters from going to CD if currPlayer has already reached it
+		//or Dracula has a new revealed location
+		//or hunter encounters Dracula
+		goToCD = false;
+	}
+
+	if (goToCD == true) {
+		//continue heading to CD
+		moveToCD(currPlayer);
+		return;
+	}
+
 	//hunters head towards the first revealed location of Dracula
 	//Round 1
-	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) == 1) {
-		shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
+	if (HvGetRound(hv) == 1) {
+		goToCD = true;
+		moveToCD(currPlayer);
+		return;
+		/*shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
 		//follow Drac if he is within 5 moves
 		if (shortestPathLen <= 5) {
 			if (shortestPathLen == 1)
@@ -67,14 +78,56 @@ void decideHunterMove(HunterView hv)
 			else
 				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
 			return;
+		}*/
+	}
+
+	//if drac's current loc is revealed
+	//use whereCanTheyGo on drac
+	//find the location furthest away from hunter
+	//use shortest path to that location
+
+	
+	if (//dracula's current location is revealed
+		DracLocation != NOWHERE
+		&& DracLocation != CITY_UNKNOWN
+		&& DracLocation != SEA_UNKNOWN) {
+		//if dracula enters location of curr hunter, hunter stays where they are
+		if (HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
+			//const char *currPlayerLocAbbrev = placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer));
+			//char *currPlayerLoc = malloc(sizeof(currPlayerLocAbbrev));
+			//strcpy(currPlayerLoc, currPlayerLocAbbrev);
+			registerBestPlay(placeIdToAbbrev(HvGetPlayerLocation(hv, currPlayer)), "Die, Dracula!");
+			return;
 		}
+		whereDracCanGo = HvWhereCanTheyGo(hv, PLAYER_DRACULA, &whereDracCanGoLen);
+		//dracula has nowhere to go, next move is teleport to CD
+		if (whereDracCanGoLen == 0) {
+			goToCD = true;
+			moveToCD(currPlayer);
+			
+		} else {
+			//find the path of location furthest away from hunter and follow it
+			int longestPath = -1;
+			for (int i = 0; i < whereDracCanGoLen; i++) {
+				shortestPath = HvGetShortestPathTo(hv, currPlayer, whereDracCanGo[i], &shortestPathLen);
+				if (shortestPathLen > longestPath)
+					longestPath = shortestPathLen;
+			}
+			for (int i = 0; i < whereDracCanGoLen; i++) {
+				shortestPath = HvGetShortestPathTo(hv, currPlayer, whereDracCanGo[i], &shortestPathLen);
+				if (shortestPathLen == longestPath)
+					break;
+			}
+			registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Predicting Drac's path.");
+		}
+		return;
 	}
 
 	int lastRevealedRound;
 	PlaceId lastKnownDracLoc = HvGetLastKnownDraculaLocation(hv, &lastRevealedRound);
 
-	//head towards Dracula after round 1
-	if (currPlayer != PLAYER_DRACULA && HvGetRound(hv) > 1) {
+	//head towards Dracula last known location after round 1
+	if (HvGetRound(hv) > 1) {
 		//follow Drac if last location is within 5 moves
 		if (shortestPathLen <= 5) {
 			shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
@@ -85,7 +138,7 @@ void decideHunterMove(HunterView hv)
 			return;
 		}
 	}
-	*/
+	/**/
 	int num = 0;
 
 	// find where the hunter can go
@@ -106,4 +159,15 @@ void decideHunterMove(HunterView hv)
 	}
 		
 	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
+}
+
+//find shortest path to CD and follow it
+void moveToCD(currPlayer) {
+	int shortestPathLen;
+	PlaceId *shortestPath = HvGetShortestPathTo(hv, currPlayer, CASTLE_DRACULA, &shortestPathLen);
+	if (shortestPathLen == 1)
+		registerBestPlay("CD", "Reach Castle Dracula.");
+	else
+		registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Heading to Castle Dracula.");
+	return;
 }
