@@ -19,7 +19,7 @@
 #include "aiUtils.h"
 
 //move to Castle Dracula
-void moveToCD(currPlayer);
+void moveToCD(int currPlayer, HunterView hv);
 
 void decideHunterMove(HunterView hv)
 {
@@ -49,8 +49,10 @@ void decideHunterMove(HunterView hv)
 	int whereDracCanGoLen;
 	PlaceId *whereDracCanGo;
 
+	int lastRevealedRound;
+
 	if (HvGetPlayerLocation(hv, currPlayer) == CASTLE_DRACULA
-		|| HvGetLastKnownDraculaLocation(hv, HvGetRound(hv)) != CASTLE_DRACULA
+		|| HvGetLastKnownDraculaLocation(hv, &lastRevealedRound) != CASTLE_DRACULA
 		|| HvGetPlayerLocation(hv, currPlayer) == HvGetPlayerLocation(hv, PLAYER_DRACULA)) {
 		//stop hunters from going to CD if currPlayer has already reached it
 		//or Dracula has a new revealed location
@@ -60,7 +62,7 @@ void decideHunterMove(HunterView hv)
 
 	if (goToCD == true) {
 		//continue heading to CD
-		moveToCD(currPlayer);
+		moveToCD(currPlayer, hv);
 		return;
 	}
 
@@ -68,7 +70,7 @@ void decideHunterMove(HunterView hv)
 	//Round 1
 	if (HvGetRound(hv) == 1) {
 		goToCD = true;
-		moveToCD(currPlayer);
+		moveToCD(currPlayer, hv);
 		return;
 		/*shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
 		//follow Drac if he is within 5 moves
@@ -103,7 +105,7 @@ void decideHunterMove(HunterView hv)
 		//dracula has nowhere to go, next move is teleport to CD
 		if (whereDracCanGoLen == 0) {
 			goToCD = true;
-			moveToCD(currPlayer);
+			moveToCD(currPlayer, hv);
 			
 		} else {
 			//find the path of location furthest away from hunter and follow it
@@ -123,7 +125,7 @@ void decideHunterMove(HunterView hv)
 		return;
 	}
 
-	int lastRevealedRound;
+	
 	PlaceId lastKnownDracLoc = HvGetLastKnownDraculaLocation(hv, &lastRevealedRound);
 
 	//head towards Dracula last known location after round 1
@@ -162,7 +164,7 @@ void decideHunterMove(HunterView hv)
 }
 
 //find shortest path to CD and follow it
-void moveToCD(currPlayer) {
+void moveToCD(int currPlayer, HunterView hv) {
 	int shortestPathLen;
 	PlaceId *shortestPath = HvGetShortestPathTo(hv, currPlayer, CASTLE_DRACULA, &shortestPathLen);
 	if (shortestPathLen == 1)
