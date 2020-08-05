@@ -187,10 +187,10 @@ static Turn playToTurn(char *play) {
 	turn.move = placeAbbrevToId((char[3]){ play[1], play[2], '\0' });
 	
 	if (turn.player == PLAYER_DRACULA) {
-		if (play[3] == 'T') turn.actions[turn.numActions++] = PLACED_TRAP;
-		if (play[4] == 'V') turn.actions[turn.numActions++] = PLACED_VAMPIRE;
-		if (play[5] == 'M') turn.actions[turn.numActions++] = TRAP_MALFUNCTIONED;
 		if (play[5] == 'V') turn.actions[turn.numActions++] = VAMPIRE_MATURED;
+		if (play[5] == 'M') turn.actions[turn.numActions++] = TRAP_MALFUNCTIONED;
+		if (play[4] == 'V') turn.actions[turn.numActions++] = PLACED_VAMPIRE;
+		if (play[3] == 'T') turn.actions[turn.numActions++] = PLACED_TRAP;
 	} else {
 		for (int i = 3; i < 7; i++) {
 			switch (play[i]) {
@@ -685,9 +685,5 @@ static int min(int num1, int num2) {
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-
-void test(int a, int b) {
-	printf("%d %d\n", a, b);
-}
 
 // TODO
