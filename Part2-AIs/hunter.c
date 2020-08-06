@@ -37,7 +37,7 @@ void decideHunterMove(HunterView hv)
 	}
 
 	/**/
-	bool goToCD = true;
+	bool goToCD = false;
 
 	int currPlayer = HvGetPlayer(hv); //current hunter
 
@@ -131,9 +131,11 @@ void decideHunterMove(HunterView hv)
 	//head towards Dracula last known location after round 1
 	if (HvGetRound(hv) > 1) {
 		//follow Drac if last location is within 5 moves
-		
-		if (shortestPathLen <= 5) {
-			shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
+		shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
+		if (shortestPathLen <= 5 && shortestPathLen > 0 && shortestPath != NULL) {
+			for (int i = 0; i < shortestPathLen; i++) {
+				printf("%d\n", shortestPath[i]);
+			}
 			if (shortestPathLen == 1)
 				registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
 			else
