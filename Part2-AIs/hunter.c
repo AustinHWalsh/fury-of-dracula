@@ -37,7 +37,7 @@ void decideHunterMove(HunterView hv)
 	}
 
 	/**/
-	bool goToCD = true;
+	bool goToCD = false;
 
 	int currPlayer = HvGetPlayer(hv); //current hunter
 
@@ -69,6 +69,7 @@ void decideHunterMove(HunterView hv)
 	//hunters head towards the first revealed location of Dracula
 	//Round 1
 	if (HvGetRound(hv) == 1) {
+		goToCD = true;
 		moveToCD(currPlayer, hv);
 		return;
 		/*shortestPath = HvGetShortestPathTo(hv,currPlayer, DracLocation, &shortestPathLen);
@@ -102,9 +103,11 @@ void decideHunterMove(HunterView hv)
 		}
 		whereDracCanGo = HvWhereCanTheyGo(hv, PLAYER_DRACULA, &whereDracCanGoLen);
 		//dracula has nowhere to go, next move is teleport to CD
-		if (whereDracCanGoLen == 0)
+		if (whereDracCanGoLen == 0) {
+			goToCD = true;
 			moveToCD(currPlayer, hv);
-		else {
+			
+		} else {
 			//find the path of location furthest away from hunter and follow it
 			int longestPath = -1;
 			for (int i = 0; i < whereDracCanGoLen; i++) {
@@ -124,19 +127,19 @@ void decideHunterMove(HunterView hv)
 
 	
 	PlaceId lastKnownDracLoc = HvGetLastKnownDraculaLocation(hv, &lastRevealedRound);
-	shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
 
 	//head towards Dracula last known location after round 1
-	//follow Drac if last location is within 5 moves
-	if (shortestPathLen <= 5 && shortestPathLen != 0) {
-		
-		if (shortestPathLen == 1)
-			registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
-		else
-			registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
-		return;
+	if (HvGetRound(hv) > 1) {
+		//follow Drac if last location is within 5 moves
+		if (shortestPathLen <= 5) {
+			shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
+			if (shortestPathLen == 1)
+				registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
+			else
+				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Behind you, Dracula.");
+			return;
+		}
 	}
-
 	/**/
 	int num = 0;
 
@@ -157,7 +160,7 @@ void decideHunterMove(HunterView hv)
 		}
 	}
 		
-	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "Rand Move"); // enter message 
+	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "Moving"); // enter message 
 }
 
 //find shortest path to CD and follow it
