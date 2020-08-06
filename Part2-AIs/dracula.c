@@ -37,33 +37,25 @@ void decideDraculaMove(DraculaView dv)
 		return; 
 	}
 			
-	numOfReach = 0;
 	int moveNum = randomRange(numOfReach);
 	
-	
 	// no places to go, just double back/hide
-	if (numOfReach != 0) {
-		
-		for (int i = 0; i < NUM_PLAYERS-1; i++) {
-			int locs = 0;
-			Player player = PLAYER_LORD_GODALMING+i;
-			PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
+	for (int i = 0; i < NUM_PLAYERS-1; i++) {
+		int locs = 0;
+		Player player = PLAYER_LORD_GODALMING+i;
+		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
 		// test each reachable 
-			for (int j = 0; j < locs; j++) {
-				if (DRAC_NEXT_MOVE != hunterMoves[j]) {
-					for (int k = 0; k < numOfReach; k++) {
-						if (validMoves[k] == HIDE) {
-							registerBestPlay("HI", "laters!");
-							return;
-						}
+		for (int j = 0; j < locs; j++) {
+			if (DRAC_NEXT_MOVE == hunterMoves[j]) {
+				for (int k = 0; k < numOfReach; k++) {
+					if (validMoves[k] == HIDE) {
+						registerBestPlay("HI", "LATER!");
+						return;
 					}
-					
 				}
+				
 			}
 		}
-		//const char *abbrev = placeIdToAbbrev(validMoves[numOfReach]);
-		//registerBestPlay(convertAbbrev(abbrev), "haha!"); 
-		
 	}
 	/*
 	//drac does double back when he sees that hunters are getting close 
@@ -165,7 +157,11 @@ void decideDraculaMove(DraculaView dv)
 	}
 
 	*/
-
+    if (numOfReach == moveNum) {
+        moveNum--;
+    }
+        
+    
 	// move to random location
 	registerBestPlay(placeIdToAbbrev(validMoves[moveNum]), "ha!"); 
 }

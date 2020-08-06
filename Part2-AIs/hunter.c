@@ -160,7 +160,7 @@ void decideHunterMove(HunterView hv)
 		}
 	}
 		
-	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "moving :)"); // enter message 
+	registerBestPlay(placeIdToAbbrev(reachable[moveNum]), "Moving"); // enter message 
 }
 
 //find shortest path to CD and follow it
