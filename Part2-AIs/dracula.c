@@ -15,7 +15,9 @@
 #include "DraculaView.h"
 #include "Game.h"
 #include "aiUtils.h"
-#define DRAC_NEXT_MOVE reachable[moveNum] 
+#define DRAC_NEXT_MOVE validMoves[moveNum] 
+
+
 
 void decideDraculaMove(DraculaView dv)
 {
@@ -38,7 +40,7 @@ void decideDraculaMove(DraculaView dv)
 	numOfReach = 0;
 	int moveNum = randomRange(numOfReach);
 	
-	/*
+	
 	// no places to go, just double back/hide
 	if (numOfReach != 0) {
 		
@@ -63,7 +65,7 @@ void decideDraculaMove(DraculaView dv)
 		//registerBestPlay(convertAbbrev(abbrev), "haha!"); 
 		
 	}
-
+	/*
 	//drac does double back when he sees that hunters are getting close 
 	//but are not in his wherecanigo locs and have less health
 	//so that he can go back and lay more traps in his trail
