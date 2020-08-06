@@ -37,7 +37,7 @@ void decideHunterMove(HunterView hv)
 	}
 
 	/**/
-	bool goToCD = false;
+	bool goToCD = true;
 
 	int currPlayer = HvGetPlayer(hv); //current hunter
 
