@@ -50,6 +50,8 @@ void decideHunterMove(HunterView hv)
 
 	int lastRevealedRound;
 
+	PlaceId vampLoc = HvGetVampireLocation(hv);
+
 	//stop hunters from going to CD if currPlayer has already reached it
 		//or Dracula has a new revealed location
 		//or hunter encounters Dracula
@@ -79,6 +81,11 @@ void decideHunterMove(HunterView hv)
 	//find the location furthest away from hunter
 	//use shortest path to that location
 
+	//if immature vampire exist, move there to vanquish it
+	if (vampLoc != NOWHERE && vampLoc != CITY_UNKNOWN) {
+		registerBestPlay(placeIdToAbbrev(vampLoc), "Heading to vampire.");
+		return;
+	}
 	
 	if (//dracula's current location is revealed
 		DracLocation != NOWHERE
@@ -97,7 +104,7 @@ void decideHunterMove(HunterView hv)
 		if (whereDracCanGoLen == 0) {
 			//goToCD = true;
 			moveToCD(currPlayer, hv);
-			
+			return;
 		} else {
 			//find the path of location furthest away from hunter and follow it
 			int longestPath = -1;
@@ -111,9 +118,13 @@ void decideHunterMove(HunterView hv)
 				if (shortestPathLen == longestPath)
 					break;
 			}
-			registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Predicting Drac's path.");
+			//set max path limit to follow
+			if (longestPath <= 6) {
+				registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Predicting Drac's path.");
+				return;
+			}
 		}
-		return;
+		
 	}
 
 	
@@ -124,9 +135,6 @@ void decideHunterMove(HunterView hv)
 		//follow Drac if last location is within 5 moves
 		shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
 		if (shortestPath[0] >= MIN_REAL_PLACE && shortestPath[0] <= MAX_REAL_PLACE && shortestPathLen > 0 && shortestPathLen <= 5) {
-			for (int i = 0; i < shortestPathLen; i++) {
-				printf("%d\n", shortestPath[i]);
-			}
 			if (shortestPathLen == 1)
 				registerBestPlay(placeIdToAbbrev(lastKnownDracLoc), "Reached Drac's last known location.");
 			else
