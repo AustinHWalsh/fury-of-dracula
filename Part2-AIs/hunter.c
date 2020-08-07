@@ -132,7 +132,7 @@ void decideHunterMove(HunterView hv)
 	if (HvGetRound(hv) > 1) {
 		//follow Drac if last location is within 5 moves
 		shortestPath = HvGetShortestPathTo(hv,currPlayer, lastKnownDracLoc, &shortestPathLen);
-		if (shortestPathLen <= 5 && shortestPathLen > 0 && shortestPath != NULL) {
+		if (shortestPath[0] >= MIN_REAL_PLACE && shortestPath[0] <= MAX_REAL_PLACE && shortestPathLen > 0 && shortestPathLen <= 5) {
 			for (int i = 0; i < shortestPathLen; i++) {
 				printf("%d\n", shortestPath[i]);
 			}
