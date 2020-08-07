@@ -36,7 +36,7 @@ void decideDraculaMove(DraculaView dv)
 		registerBestPlay("TP", "haha!");
 		return; 
 	}
-			
+	
 	int moveNum = randomRange(numOfReach);
 	
 	// no places to go, just double back/hide
@@ -155,12 +155,31 @@ void decideDraculaMove(DraculaView dv)
 		} 
 	}
 
-	
+	// get the traps and vampire location
+	int trapNum = 0;
+	PlaceId *trapLocs = DvGetTrapLocations(dv, &trapNum);
+	PlaceId vampLoc = DvGetVampireLocation(dv);
+	// when a vampire is in the trail, then there is 1 less trap
+	if (vampLoc != NOWHERE && trapLocs[0]) 
+		trapNum++;
+
+	// if there are 5 traps in the "trail"
+	// drac hasnt visited a sea location
+	if (trapNum == 5) {
+		// test each valid move
+		for (int i = 0; i < numOfReach; i++) {
+			// if its a sea type, move there
+			if (placeIdToType(validMoves[i]) == SEA) {
+				registerBestPlay(placeIdToAbbrev(validMoves[i]), "priority");
+				return;
+			}
+		}
+	}
+
     if (numOfReach == moveNum) {
         moveNum--;
     }
         
-    
 	// move to random location
 	registerBestPlay(placeIdToAbbrev(DRAC_NEXT_MOVE), "ha!"); 
 }
