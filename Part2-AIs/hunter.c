@@ -205,8 +205,10 @@ void decideHunterMove(HunterView hv)
 		}
 	} else if (currPlayer == PLAYER_VAN_HELSING) {
 		PlaceId nextLoc = vanHelPathMove(HvGetPlayerLocation(hv, PLAYER_VAN_HELSING));
-		registerBestPlay(placeIdToAbbrev(nextLoc), "on path");
-		return;
+		if (nextLoc != NOWHERE) {
+			registerBestPlay(placeIdToAbbrev(nextLoc), "on path");
+			return;
+		}
 	} else if (currPlayer == PLAYER_DR_SEWARD) {
 
 		if (currHunterLoc == EDINBURGH) {
@@ -327,6 +329,6 @@ PlaceId vanHelPathMove(PlaceId currLocation) {
 		case ZURICH: return GENEVA; break;
 		case GENEVA: return CLERMONT_FERRAND; break;
 		case CLERMONT_FERRAND: return BORDEAUX; break;	
-		default: return currLocation; break;						
+		default: return NOWHERE; break;						
 	}
 }
