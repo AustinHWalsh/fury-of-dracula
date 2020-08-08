@@ -149,56 +149,59 @@ void decideHunterMove(HunterView hv)
 
 	if (currPlayer == PLAYER_LORD_GODALMING) {
 
-		if (currHunterLoc == PLYMOUTH) {
-			registerBestPlay(placeIdToAbbrev(LONDON), "G-Fixed path.");
+		if (currHunterLoc == ZURICH) {
+			registerBestPlay(placeIdToAbbrev(GENEVA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == LONDON) {
-			registerBestPlay(placeIdToAbbrev(SWANSEA), "G-Fixed path.");
+		} else if (currHunterLoc == GENEVA) {
+			registerBestPlay(placeIdToAbbrev(MARSEILLES), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == SWANSEA) {
-			registerBestPlay(placeIdToAbbrev(IRISH_SEA), "G-Fixed path.");
+		} else if (currHunterLoc == MARSEILLES) {
+			registerBestPlay(placeIdToAbbrev(CLERMONT_FERRAND), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == IRISH_SEA) {
-			registerBestPlay(placeIdToAbbrev(ATLANTIC_OCEAN), "G-Fixed path.");
+		} else if (currHunterLoc == CLERMONT_FERRAND) {
+			registerBestPlay(placeIdToAbbrev(TOULOUSE), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == ATLANTIC_OCEAN) {
-			registerBestPlay(placeIdToAbbrev(GALWAY), "G-Fixed path.");
+		} else if (currHunterLoc == TOULOUSE) {
+			registerBestPlay(placeIdToAbbrev(BARCELONA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == GALWAY) {
-			registerBestPlay(placeIdToAbbrev(DUBLIN), "G-Fixed path.");
+		} else if (currHunterLoc == BARCELONA) {
+			registerBestPlay(placeIdToAbbrev(MEDITERRANEAN_SEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == DUBLIN) {
-			registerBestPlay(placeIdToAbbrev(LIVERPOOL), "G-Fixed path.");
+		} else if (currHunterLoc == MEDITERRANEAN_SEA) {
+			registerBestPlay(placeIdToAbbrev(CAGLIARI), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == LIVERPOOL) {
-			registerBestPlay(placeIdToAbbrev(MANCHESTER), "G-Fixed path.");
+		} else if (currHunterLoc == CAGLIARI) {
+			registerBestPlay(placeIdToAbbrev(TYRRHENIAN_SEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == MANCHESTER) {
-			registerBestPlay(placeIdToAbbrev(EDINBURGH), "G-Fixed path.");
+		} else if (currHunterLoc == TYRRHENIAN_SEA) {
+			registerBestPlay(placeIdToAbbrev(GENOA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == EDINBURGH) {
-			registerBestPlay(placeIdToAbbrev(NORTH_SEA), "G-Fixed path.");
+		} else if (currHunterLoc == GENOA) {
+			registerBestPlay(placeIdToAbbrev(FLORENCE), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == NORTH_SEA) {
-			registerBestPlay(placeIdToAbbrev(HAMBURG), "G-Fixed path.");
+		} else if (currHunterLoc == FLORENCE) {
+			registerBestPlay(placeIdToAbbrev(ROME), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == HAMBURG) {
-			registerBestPlay(placeIdToAbbrev(COLOGNE), "G-Fixed path.");
+		} else if (currHunterLoc == ROME) {
+			registerBestPlay(placeIdToAbbrev(NAPLES), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == COLOGNE) {
-			registerBestPlay(placeIdToAbbrev(AMSTERDAM), "G-Fixed path.");
+		} else if (currHunterLoc == NAPLES) {
+			registerBestPlay(placeIdToAbbrev(BARI), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == AMSTERDAM) {
-			registerBestPlay(placeIdToAbbrev(BRUSSELS), "G-Fixed path.");
+		} else if (currHunterLoc == BARI) {
+			registerBestPlay(placeIdToAbbrev(ADRIATIC_SEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == BRUSSELS) {
-			registerBestPlay(placeIdToAbbrev(LE_HAVRE), "G-Fixed path.");
+		} else if (currHunterLoc == ADRIATIC_SEA) {
+			registerBestPlay(placeIdToAbbrev(VENICE), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == LE_HAVRE) {
-			registerBestPlay(placeIdToAbbrev(ENGLISH_CHANNEL), "G-Fixed path.");
+		} else if (currHunterLoc == VENICE) {
+			registerBestPlay(placeIdToAbbrev(MUNICH), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == ENGLISH_CHANNEL) {
-			registerBestPlay(placeIdToAbbrev(PLYMOUTH), "G-Fixed path.");
+		} else if (currHunterLoc == MUNICH) {
+			registerBestPlay(placeIdToAbbrev(MILAN), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == MILAN) {
+			registerBestPlay(placeIdToAbbrev(ZURICH), "G-Fixed path.");
 			return;
 		}
 	}
