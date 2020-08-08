@@ -29,9 +29,9 @@ void decideHunterMove(HunterView hv)
 	// first round
     if (HvGetRound(hv) == 0) {
 		if (currPlayer == PLAYER_LORD_GODALMING)
-			registerBestPlay("PL", "start!"); //plymouth
+			registerBestPlay("ZU", "start!"); //zurich
 		else if (currPlayer == PLAYER_DR_SEWARD)
-			registerBestPlay("FR", "start!"); //frankfurt
+			registerBestPlay("ED", "start!"); //edingburgh
 		else if (currPlayer == PLAYER_VAN_HELSING)
 			registerBestPlay("SR", "start!"); //saragossa
 		else if (currPlayer == PLAYER_MINA_HARKER)
@@ -148,7 +148,7 @@ void decideHunterMove(HunterView hv)
 	PlaceId currHunterLoc = HvGetPlayerLocation(hv, currPlayer);
 
 	if (currPlayer == PLAYER_LORD_GODALMING) {
-		
+
 		if (currHunterLoc == PLYMOUTH) {
 			registerBestPlay(placeIdToAbbrev(LONDON), "G-Fixed path.");
 			return;
