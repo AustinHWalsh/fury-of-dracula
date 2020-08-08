@@ -44,11 +44,13 @@ void decideDraculaMove(DraculaView dv)
 		int locs = 0;
 		Player player = PLAYER_LORD_GODALMING+i;
 		PlaceId *hunterMoves = DvWhereCanTheyGo(dv, player, &locs);
+		PlaceId hunterLoc = DvGetPlayerLocation(dv, player);
+		PlaceId dracLoc = DvGetPlayerLocation(dv, PLAYER_DRACULA);
 		// test each reachable 
 		for (int j = 0; j < locs; j++) {
 			if (DRAC_NEXT_MOVE == hunterMoves[j]) {
 				for (int k = 0; k < numOfReach; k++) {
-					if (validMoves[k] == HIDE) {
+					if (validMoves[k] == HIDE && hunterLoc != dracLoc) {
 						registerBestPlay("HI", "LATER!");
 						return;
 					}
