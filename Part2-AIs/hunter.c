@@ -275,58 +275,58 @@ void decideHunterMove(HunterView hv)
 	else if (currPlayer == PLAYER_MINA_HARKER) {
 
         if (currHunterLoc == SZEGED) {
-            registerBestPlay(placeIdToAbbrev(BELGRADE), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(BELGRADE), "M-Fixed path.");
             return;
         } else if (currHunterLoc == BELGRADE) {
-            registerBestPlay(placeIdToAbbrev(BUCHAREST), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(BUCHAREST), "M-Fixed path.");
             return;
         } else if (currHunterLoc == BUCHAREST) {
-            registerBestPlay(placeIdToAbbrev(KLAUSENBURG), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(KLAUSENBURG), "M-Fixed path.");
             return;
         } else if (currHunterLoc == KLAUSENBURG) {
-            registerBestPlay(placeIdToAbbrev(CASTLE_DRACULA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(CASTLE_DRACULA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == CASTLE_DRACULA) {
-            registerBestPlay(placeIdToAbbrev(GALATZ), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(GALATZ), "M-Fixed path.");
             return;
         } else if (currHunterLoc == GALATZ) {
-            registerBestPlay(placeIdToAbbrev(BLACK_SEA), "G-Fixed path.");
-            return;
-        } else if (currHunterLoc == BLACK_SEA) {
-            registerBestPlay(placeIdToAbbrev(CONSTANTA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(CONSTANTA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == CONSTANTA) {
-            registerBestPlay(placeIdToAbbrev(VARNA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(BLACK_SEA), "M-Fixed path.");
+            return;
+        } else if (currHunterLoc == BLACK_SEA) {
+            registerBestPlay(placeIdToAbbrev(VARNA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == VARNA) {
-            registerBestPlay(placeIdToAbbrev(SOFIA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(SOFIA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == SOFIA) {
-            registerBestPlay(placeIdToAbbrev(SALONICA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(SALONICA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == SALONICA) {
-            registerBestPlay(placeIdToAbbrev(IONIAN_SEA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(IONIAN_SEA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == IONIAN_SEA) {
-            registerBestPlay(placeIdToAbbrev(ATHENS), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(ATHENS), "M-Fixed path.");
             return;
         } else if (currHunterLoc == ATHENS) {
-            registerBestPlay(placeIdToAbbrev(VALONA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(VALONA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == VALONA) {
-            registerBestPlay(placeIdToAbbrev(SARAJEVO), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(SARAJEVO), "M-Fixed path.");
             return;
         } else if (currHunterLoc == SARAJEVO) {
-            registerBestPlay(placeIdToAbbrev(ZAGREB), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(ZAGREB), "M-Fixed path.");
             return;
         } else if (currHunterLoc == ZAGREB) {
-            registerBestPlay(placeIdToAbbrev(VIENNA), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(VIENNA), "M-Fixed path.");
             return;
         } else if (currHunterLoc == VIENNA) {
-            registerBestPlay(placeIdToAbbrev(BUDAPEST), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(BUDAPEST), "M-Fixed path.");
             return;
         }else if (currHunterLoc == BUDAPEST) {
-            registerBestPlay(placeIdToAbbrev(SZEGED), "G-Fixed path.");
+            registerBestPlay(placeIdToAbbrev(SZEGED), "M-Fixed path.");
             return;
         }
 	}
