@@ -20,6 +20,8 @@
 
 //move to Castle Dracula
 void moveToCD(int currPlayer, HunterView hv);
+// follow van helsings path
+PlaceId vanHelPathMove(PlaceId currLocation);
 
 void decideHunterMove(HunterView hv)
 {
@@ -149,61 +151,62 @@ void decideHunterMove(HunterView hv)
 
 	if (currPlayer == PLAYER_LORD_GODALMING) {
 
-		if (currHunterLoc == ZURICH) {
-			registerBestPlay(placeIdToAbbrev(GENEVA), "G-Fixed path.");
+		if (currHunterLoc == PLYMOUTH) {
+			registerBestPlay(placeIdToAbbrev(LONDON), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == GENEVA) {
-			registerBestPlay(placeIdToAbbrev(MARSEILLES), "G-Fixed path.");
+		} else if (currHunterLoc == LONDON) {
+			registerBestPlay(placeIdToAbbrev(SWANSEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == MARSEILLES) {
-			registerBestPlay(placeIdToAbbrev(CLERMONT_FERRAND), "G-Fixed path.");
+		} else if (currHunterLoc == SWANSEA) {
+			registerBestPlay(placeIdToAbbrev(IRISH_SEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == CLERMONT_FERRAND) {
-			registerBestPlay(placeIdToAbbrev(TOULOUSE), "G-Fixed path.");
+		} else if (currHunterLoc == IRISH_SEA) {
+			registerBestPlay(placeIdToAbbrev(ATLANTIC_OCEAN), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == TOULOUSE) {
-			registerBestPlay(placeIdToAbbrev(BARCELONA), "G-Fixed path.");
+		} else if (currHunterLoc == ATLANTIC_OCEAN) {
+			registerBestPlay(placeIdToAbbrev(GALWAY), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == BARCELONA) {
-			registerBestPlay(placeIdToAbbrev(MEDITERRANEAN_SEA), "G-Fixed path.");
+		} else if (currHunterLoc == GALWAY) {
+			registerBestPlay(placeIdToAbbrev(DUBLIN), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == MEDITERRANEAN_SEA) {
-			registerBestPlay(placeIdToAbbrev(CAGLIARI), "G-Fixed path.");
+		} else if (currHunterLoc == DUBLIN) {
+			registerBestPlay(placeIdToAbbrev(LIVERPOOL), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == CAGLIARI) {
-			registerBestPlay(placeIdToAbbrev(TYRRHENIAN_SEA), "G-Fixed path.");
+		} else if (currHunterLoc == LIVERPOOL) {
+			registerBestPlay(placeIdToAbbrev(MANCHESTER), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == TYRRHENIAN_SEA) {
-			registerBestPlay(placeIdToAbbrev(GENOA), "G-Fixed path.");
+		} else if (currHunterLoc == MANCHESTER) {
+			registerBestPlay(placeIdToAbbrev(EDINBURGH), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == GENOA) {
-			registerBestPlay(placeIdToAbbrev(FLORENCE), "G-Fixed path.");
+		} else if (currHunterLoc == EDINBURGH) {
+			registerBestPlay(placeIdToAbbrev(NORTH_SEA), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == FLORENCE) {
-			registerBestPlay(placeIdToAbbrev(ROME), "G-Fixed path.");
+		} else if (currHunterLoc == NORTH_SEA) {
+			registerBestPlay(placeIdToAbbrev(HAMBURG), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == ROME) {
-			registerBestPlay(placeIdToAbbrev(NAPLES), "G-Fixed path.");
+		} else if (currHunterLoc == HAMBURG) {
+			registerBestPlay(placeIdToAbbrev(COLOGNE), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == NAPLES) {
-			registerBestPlay(placeIdToAbbrev(BARI), "G-Fixed path.");
+		} else if (currHunterLoc == COLOGNE) {
+			registerBestPlay(placeIdToAbbrev(AMSTERDAM), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == BARI) {
-			registerBestPlay(placeIdToAbbrev(ADRIATIC_SEA), "G-Fixed path.");
+		} else if (currHunterLoc == AMSTERDAM) {
+			registerBestPlay(placeIdToAbbrev(BRUSSELS), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == ADRIATIC_SEA) {
-			registerBestPlay(placeIdToAbbrev(VENICE), "G-Fixed path.");
+		} else if (currHunterLoc == BRUSSELS) {
+			registerBestPlay(placeIdToAbbrev(LE_HAVRE), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == VENICE) {
-			registerBestPlay(placeIdToAbbrev(MUNICH), "G-Fixed path.");
+		} else if (currHunterLoc == LE_HAVRE) {
+			registerBestPlay(placeIdToAbbrev(ENGLISH_CHANNEL), "G-Fixed path.");
 			return;
-		} else if (currHunterLoc == MUNICH) {
-			registerBestPlay(placeIdToAbbrev(MILAN), "G-Fixed path.");
-			return;
-		} else if (currHunterLoc == MILAN) {
-			registerBestPlay(placeIdToAbbrev(ZURICH), "G-Fixed path.");
+		} else if (currHunterLoc == ENGLISH_CHANNEL) {
+			registerBestPlay(placeIdToAbbrev(PLYMOUTH), "G-Fixed path.");
 			return;
 		}
+	} else if (currPlayer == PLAYER_VAN_HELSING) {
+		PlaceId nextLoc = vanHelPathMove(HvGetPlayerLocation(hv, PLAYER_VAN_HELSING));
+		registerBestPlay(placeIdToAbbrev(nextLoc), "on path");
+		return;
 	}
 
 	int num = 0;
@@ -237,4 +240,38 @@ void moveToCD(int currPlayer, HunterView hv) {
 	else
 		registerBestPlay(placeIdToAbbrev(shortestPath[0]), "Heading to Castle Dracula.");
 	return;
+}
+
+// get the next move on van helsings path
+// or return to the path if in the hospital
+PlaceId vanHelPathMove(PlaceId currLocation) {
+	switch (currLocation) {
+		case SARAGOSSA: return SANTANDER; break;
+		case SANTANDER: return MADRID; break;
+		case MADRID: return ALICANTE; break;
+		case ALICANTE: return GRANADA; break;
+		case GRANADA: return CADIZ; break;
+		case CADIZ: return LISBON; break;
+		case LISBON: return ATLANTIC_OCEAN; break;
+		case ATLANTIC_OCEAN: return GALWAY; break;
+		case GALWAY: return DUBLIN; break;
+		case DUBLIN: return IRISH_SEA; break;
+		case IRISH_SEA: return LIVERPOOL; break;
+		case LIVERPOOL: return SWANSEA; break;
+		case SWANSEA: return LONDON; break;
+		case LONDON: return PLYMOUTH; break;
+		case PLYMOUTH: return ENGLISH_CHANNEL; break;
+		case ENGLISH_CHANNEL: return LE_HAVRE; break;
+		case LE_HAVRE: return NANTES; break;
+		case NANTES: return BAY_OF_BISCAY; break;
+		case BAY_OF_BISCAY: return BORDEAUX; break;
+		case BORDEAUX: return SARAGOSSA; break;
+		case ST_JOSEPH_AND_ST_MARY: return ZAGREB; break;
+		case ZAGREB: return MUNICH; break;
+		case MUNICH: return ZURICH; break;
+		case ZURICH: return GENEVA; break;
+		case GENEVA: return CLERMONT_FERRAND; break;
+		case CLERMONT_FERRAND: return BORDEAUX; break;	
+		default: return currLocation; break;						
+	}
 }
