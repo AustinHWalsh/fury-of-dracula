@@ -22,9 +22,17 @@
 void decideDraculaMove(DraculaView dv)
 {
 	// first round
-	Round roundNum = DvGetRound(dv);
-	if (roundNum == 0) {
-		registerBestPlay("MI", "start!"); //milan
+	if (DvGetRound(dv) == 0) {
+		// get a random move
+		PlaceId firstMove = randomRange(MAX_REAL_PLACE);
+		// check the move to see if some other player has gone there
+		for (int i = 0; i < NUM_PLAYERS-1; i++) {
+			// find a new place if a hunter is already there
+			if (firstMove == DvGetPlayerLocation(dv, i) || 
+				placeIdToType(firstMove) == SEA) 
+				firstMove = randomRange(MAX_REAL_PLACE);
+		}
+		registerBestPlay(placeIdToAbbrev(firstMove), "start!");
 		return;
 	}
 	
