@@ -91,8 +91,9 @@ void decideHunterMove(HunterView hv)
 		//move to vamp if its within 5 moves
 		if (vampPathLen <= 5) {
 			registerBestPlay(placeIdToAbbrev(vampPath[0]), "Heading to vampire.");
+			return;
 		}
-		return;
+		
 	}
 	
 	if (//dracula's current location is revealed
