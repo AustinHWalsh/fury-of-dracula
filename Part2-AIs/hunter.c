@@ -23,23 +23,23 @@ void moveToCD(int currPlayer, HunterView hv);
 
 void decideHunterMove(HunterView hv)
 {
+	
+	int currPlayer = HvGetPlayer(hv); //current hunter
+
 	// first round
     if (HvGetRound(hv) == 0) {
-		if (HvGetPlayer(hv) == PLAYER_LORD_GODALMING)
+		if (currPlayer == PLAYER_LORD_GODALMING)
 			registerBestPlay("PL", "start!"); //plymouth
-		else if (HvGetPlayer(hv) == PLAYER_DR_SEWARD)
+		else if (currPlayer == PLAYER_DR_SEWARD)
 			registerBestPlay("FR", "start!"); //frankfurt
-		else if (HvGetPlayer(hv) == PLAYER_VAN_HELSING)
+		else if (currPlayer == PLAYER_VAN_HELSING)
 			registerBestPlay("SR", "start!"); //saragossa
-		else if (HvGetPlayer(hv) == PLAYER_MINA_HARKER)
+		else if (currPlayer == PLAYER_MINA_HARKER)
 			registerBestPlay("SZ", "start!"); //szeged
 		return;
 	}
 
 	//bool goToCD = false;
-
-	int currPlayer = HvGetPlayer(hv); //current hunter
-
 	int DracLocation = HvGetPlayerLocation(hv, PLAYER_DRACULA);
 
 	int shortestPathLen;
@@ -142,6 +142,67 @@ void decideHunterMove(HunterView hv)
 			return;
 		}
 	}
+
+	//Fixed hunter paths to cover max locations
+
+	PlaceId currHunterLoc = HvGetPlayerLocation(hv, currPlayer);
+
+	if (currPlayer == PLAYER_LORD_GODALMING) {
+		
+		if (currHunterLoc == PLYMOUTH) {
+			registerBestPlay(placeIdToAbbrev(LONDON), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == LONDON) {
+			registerBestPlay(placeIdToAbbrev(SWANSEA), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == SWANSEA) {
+			registerBestPlay(placeIdToAbbrev(IRISH_SEA), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == IRISH_SEA) {
+			registerBestPlay(placeIdToAbbrev(ATLANTIC_OCEAN), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == ATLANTIC_OCEAN) {
+			registerBestPlay(placeIdToAbbrev(GALWAY), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == GALWAY) {
+			registerBestPlay(placeIdToAbbrev(DUBLIN), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == DUBLIN) {
+			registerBestPlay(placeIdToAbbrev(LIVERPOOL), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == LIVERPOOL) {
+			registerBestPlay(placeIdToAbbrev(MANCHESTER), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == MANCHESTER) {
+			registerBestPlay(placeIdToAbbrev(EDINBURGH), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == EDINBURGH) {
+			registerBestPlay(placeIdToAbbrev(NORTH_SEA), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == NORTH_SEA) {
+			registerBestPlay(placeIdToAbbrev(HAMBURG), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == HAMBURG) {
+			registerBestPlay(placeIdToAbbrev(COLOGNE), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == COLOGNE) {
+			registerBestPlay(placeIdToAbbrev(AMSTERDAM), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == AMSTERDAM) {
+			registerBestPlay(placeIdToAbbrev(BRUSSELS), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == BRUSSELS) {
+			registerBestPlay(placeIdToAbbrev(LE_HAVRE), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == LE_HAVRE) {
+			registerBestPlay(placeIdToAbbrev(ENGLISH_CHANNEL), "G-Fixed path.");
+			return;
+		} else if (currHunterLoc == ENGLISH_CHANNEL) {
+			registerBestPlay(placeIdToAbbrev(PLYMOUTH), "G-Fixed path.");
+			return;
+		}
+	}
+
 	int num = 0;
 
 	// find where the hunter can go
