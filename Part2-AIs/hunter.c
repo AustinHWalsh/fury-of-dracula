@@ -207,7 +207,62 @@ void decideHunterMove(HunterView hv)
 		PlaceId nextLoc = vanHelPathMove(HvGetPlayerLocation(hv, PLAYER_VAN_HELSING));
 		registerBestPlay(placeIdToAbbrev(nextLoc), "on path");
 		return;
+	} else if (currPlayer == PLAYER_DR_SEWARD) {
+
+		if (currHunterLoc == EDINBURGH) {
+			registerBestPlay(placeIdToAbbrev(NORTH_SEA), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == NORTH_SEA) {
+			registerBestPlay(placeIdToAbbrev(AMSTERDAM), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == AMSTERDAM) {
+			registerBestPlay(placeIdToAbbrev(COLOGNE), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == COLOGNE) {
+			registerBestPlay(placeIdToAbbrev(HAMBURG), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == HAMBURG) {
+			registerBestPlay(placeIdToAbbrev(BERLIN), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == BERLIN) {
+			registerBestPlay(placeIdToAbbrev(PRAGUE), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == PRAGUE) {
+			registerBestPlay(placeIdToAbbrev(NUREMBURG), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == NUREMBURG) {
+			registerBestPlay(placeIdToAbbrev(LEIPZIG), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == LEIPZIG) {
+			registerBestPlay(placeIdToAbbrev(FRANKFURT), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == FRANKFURT) {
+			registerBestPlay(placeIdToAbbrev(STRASBOURG), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == STRASBOURG) {
+			registerBestPlay(placeIdToAbbrev(BRUSSELS), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == BRUSSELS) {
+			registerBestPlay(placeIdToAbbrev(PARIS), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == PARIS) {
+			registerBestPlay(placeIdToAbbrev(LE_HAVRE), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == LE_HAVRE) {
+			registerBestPlay(placeIdToAbbrev(ENGLISH_CHANNEL), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == ENGLISH_CHANNEL) {
+			registerBestPlay(placeIdToAbbrev(LONDON), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == LONDON) {
+			registerBestPlay(placeIdToAbbrev(MANCHESTER), "S-Fixed path.");
+			return;
+		} else if (currHunterLoc == MANCHESTER) {
+			registerBestPlay(placeIdToAbbrev(EDINBURGH), "S-Fixed path.");
+			return;
+		}
 	}
+
 
 	int num = 0;
 
