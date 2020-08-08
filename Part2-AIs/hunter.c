@@ -53,6 +53,8 @@ void decideHunterMove(HunterView hv)
 	int lastRevealedRound;
 
 	PlaceId vampLoc = HvGetVampireLocation(hv);
+	PlaceId *vampPath;
+	int vampPathLen = -1;
 
 	//stop hunters from going to CD if currPlayer has already reached it
 		//or Dracula has a new revealed location
@@ -85,7 +87,11 @@ void decideHunterMove(HunterView hv)
 
 	//if immature vampire exist, move there to vanquish it
 	if (vampLoc != NOWHERE && vampLoc != CITY_UNKNOWN) {
-		registerBestPlay(placeIdToAbbrev(vampLoc), "Heading to vampire.");
+		vampPath = HvGetShortestPathTo(hv, currPlayer, vampLoc, &vampPathLen);
+		//move to vamp if its within 5 moves
+		if (vampPathLen <= 5) {
+			registerBestPlay(placeIdToAbbrev(vampPath[0]), "Heading to vampire.");
+		}
 		return;
 	}
 	

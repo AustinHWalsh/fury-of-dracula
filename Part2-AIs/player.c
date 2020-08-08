@@ -71,7 +71,7 @@ typedef HunterView View;
 # define decideMove decideHunterMove
 # define ViewFree HvFree
 
-# define xPastPlays "GMN.... SFR.... HSR.... MSZ.... DMI.V.. GED.... SBR.... HMR.... MKL.... DHIT... GLV.... SVE.... HMR.... MBD.... DZUT... GSW.... SAS.... HGO.... MVE.... DD1T... GSW.... SAS.... HVE.... MAS.... DMRT... GSW.... SAS.... HAS.... MVE.... DTOT... GLV.... SAS.... HAS.... MAS.... DBOT.V. GSW.... SVE.... HAS.... MAS.... DHIT.M. GSW.... SAS.... HVE.... MAS.... DCFT.M. GSW.... SAS.... HAS.... MVE.... DD1T.M. GLV.... SAS.... HAS.... MAS.... DC?T.M. GSW.... SVE.... HAS.... MAS.... DC?T.M. GSW.... SAS.... HVE.... MAS.... DC?T.M. GSW.... SAS.... HAS.... MVE.... DC?.VM. GLV.... SAS.... HAS.... MAS.... DC?T.M. GSW.... SVE.... HAS.... MAS.... DC?T.M. GSW.... SAS.... HVE.... MAS.... DC?T.M. GSW.... SAS.... HAS.... MVE.... DC?T.M. GLV.... SAS.... HAS.... MAS.... DC?T.M. GLV.... SAS.... HVE.... MAS.... DC?T.V. GLV.... SAS.... HVE.... MIO.... DC?T.M. GLV.... SAS.... HVE.... MTS.... DC?T.M. GLV.... SAS.... HVE.... MGO.... DC?T.M. GLV.... SAS.... HVE.... MMRT... DC?T.M. GLV.... SAS.... HVE.... MSR.... DC?T.M. GLV.... SAS.... HVE.... MTOT... DC?T... GLV.... SAS.... HVE.... MMR.... DC?.V.. GLV.... SAS.... HVE.... MZUT... DC?T... GLV.... SAS.... HVE.... MZU.... DC?T.M. GLV.... SAS.... HVE.... MSTT... DC?T... GLV.... SAS.... HVE.... MFR.... DC?T.M. GLV.... SAS.... HVE.... MST.... DC?T.M. GLV.... SAS.... HVE.... MPA.... DC?T.V. GLV.... SAS.... HVE.... MST.... DC?T.M. GLV.... SAS.... HVE.... MFR.... DC?T.M. GLV.... SAS.... HVE.... MST.... DC?T.M."
+# define xPastPlays "GMN.... SFR.... HSR.... MSZ.... DGW.V.."
 # define xMsgs { "", "", "" }
 
 #endif
