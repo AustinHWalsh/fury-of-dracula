@@ -583,7 +583,7 @@ PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
 		// Return a pointer to the section of the array containing the
 		// player's last *numReturnedLocs locations
 		*canFree = false;
-		return &gv->moveHistory[player][numMovesMade - *numReturnedLocs];
+		return &gv->draculaLocationHistory[numMovesMade - *numReturnedLocs];
 	}
 }
 
