@@ -87,6 +87,10 @@ void decideHunterMove(HunterView hv)
 
 	//if immature vampire exist, move there to vanquish it
 	if (vampLoc != NOWHERE && vampLoc != CITY_UNKNOWN) {
+		if (HvGetPlayerLocation(hv, currPlayer) == vampLoc) {
+			registerBestPlay(placeIdToAbbrev(vampLoc), "Already in vamp location");
+			return;
+		}
 		vampPath = HvGetShortestPathTo(hv, currPlayer, vampLoc, &vampPathLen);
 		//move to vamp if its within 5 moves
 		if (vampPathLen <= 5) {
